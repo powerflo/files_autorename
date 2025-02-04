@@ -12,6 +12,7 @@ use OCP\Files\Events\Node\NodeCreatedEvent;
 use Psr\Log\LoggerInterface;
 use OCP\Files\Events\Node\NodeRenamedEvent;
 use OCP\Files\Events\Node\NodeWrittenEvent;
+use OCP\Files\File;
 use OCP\Files\Lock\ILock;
 use OCP\Files\Lock\ILockManager;
 use OCP\Files\Lock\ILockProvider;
@@ -56,6 +57,11 @@ class RenameListener implements IEventListener {
         }
         
         $this->log('Target Node: ' . $targetNode->getPath());
+
+        // Only process files, not folders
+        if (!($targetNode instanceof File)) {
+            return;
+        }
 
         $filePath = $targetNode->getPath();
         logger('nextrename')->warning('Processing file at path: ' . $filePath);

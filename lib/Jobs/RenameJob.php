@@ -6,6 +6,7 @@ use OCP\BackgroundJob\QueuedJob;
 use Psr\Log\LoggerInterface;
 use OCP\Files\IRootFolder;
 use OCA\NextRename\Service\RenameFileProcessor;
+use OCP\Files\File;
 
 class RenameJob extends QueuedJob {
     private LoggerInterface $logger;
@@ -31,14 +32,19 @@ class RenameJob extends QueuedJob {
         
         $file = $this->rootFolder->getFirstNodeByIdInPath($arguments['id'], $arguments['path']);
 
+        if (!($file instanceof File)) {
+            return;
+        }
+        
         if ($file === null) {
             $this->logger->error('RenameJob: File not found', ['app' => 'nextrename']);
             return;
         }
 
+
         $parent = $file->getParent();
         $renameFileProcessor = new RenameFileProcessor($this->logger);
-        $newName = $renameFileProcessor->processRenameFile($parent, $file);
+        $newName = $renameFileProcessor->processRenameFile($file);
 
         if ($newName !== null) {
             $this->logger->warning('Renaming ' . $file->getName() . ' to ' . $newName);
