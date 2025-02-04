@@ -41,13 +41,19 @@ class RenameJob extends QueuedJob {
             return;
         }
 
-
-        $parent = $file->getParent();
         $renameFileProcessor = new RenameFileProcessor($this->logger);
         $newName = $renameFileProcessor->processRenameFile($file);
-
+        
         if ($newName !== null) {
+            $parent = $file->getParent();
             $this->logger->warning('Renaming ' . $file->getName() . ' to ' . $newName);
+
+            // Do not rename if a file with the new name already exists
+            if ($parent->nodeExists($newName)) {
+                $this->logger->error('File with the new name already exists: ' . $newName);
+                return;
+            }
+
             try {
                 $file->move($parent->getPath() . '/' . $newName);
                 $this->logger->warning('File renamed successfully');

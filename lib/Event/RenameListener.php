@@ -66,25 +66,13 @@ class RenameListener implements IEventListener {
         $filePath = $targetNode->getPath();
         logger('nextrename')->warning('Processing file at path: ' . $filePath);
 
-        // Bestimme den übergeordneten Ordner des betroffenen Files
-        $parent = $targetNode->getParent();
-        logger('nextrename')->warning('Looking for .rename file at ' . $parent->getPath());
-
-        try {
-            $renameFile = $parent->get('.rename');
-        } catch (\Exception $e) {
-            // .rename-Datei existiert nicht in diesem Ordner – es wird nichts unternommen
-            logger('nextrename')->warning('No .rename file found at ' . $parent->getPath() . $e->getMessage());
-            return;
-        }
-
         $renameFileProcessor = new RenameFileProcessor($this->logger);
         $newName = $renameFileProcessor->processRenameFile($targetNode);
 
         if ($newName !== null) {
             logger('nextrename')->warning('Create a RenameJob for ' . $targetNode->getPath());
             try {
-                $this->jobList->add(RenameJob::class, ['id' => $targetNode->getId(), 'path' => $parent->getPath()]);
+                $this->jobList->add(RenameJob::class, ['id' => $targetNode->getId(), 'path' => $targetNode->getParent()->getPath()]);
             } catch (\Exception $ex) {
                 $this->logger->error('Error adding RenameJob: ' . $ex->getMessage());
             }

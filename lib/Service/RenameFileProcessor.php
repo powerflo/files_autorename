@@ -14,24 +14,22 @@ class RenameFileProcessor {
     }
 
     public function readRenameFile(Folder $parent): ?string {
-        try {
-            $renameFile = $parent->get('.rename');
-            if ($renameFile instanceof File) {
-                return $renameFile->getContent();
-            } else {
-                $this->logger->error('Error reading .rename file: ' . $parent->getPath() . ' is not a file');
-                return null;
-            }
-        } catch (\OCP\Files\NotFoundException $e) {
-            $this->logger->error('No .rename file found at ' . $parent->getPath() . ': ' . $e->getMessage());
+        $renameFile = $parent->get('.rename');
+        if ($renameFile instanceof File) {
+            return $renameFile->getContent();
+        } else {
+            $this->logger->error('Error reading .rename file: ' . $parent->getPath() . ' is not a file');
             return null;
         }
     }
 
     public function processRenameFile(File $file): ?string {
         $parent = $file->getParent();
-        $contents = $this->readRenameFile($parent);
-        if ($contents === null) {
+
+        try {
+            $contents = $this->readRenameFile($parent);
+        } catch (\OCP\Files\NotFoundException $e) {
+            $this->logger->error('No .rename file found at ' . $parent->getPath() . ': ' . $e->getMessage());
             return null;
         }
 
