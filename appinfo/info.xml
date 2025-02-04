@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	  xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
+	<id>nextrename</id>
+	<name>Next Rename</name>
+	<summary>Summary</summary>
+	<description>Description</description>
+	<version>1.0.0</version>
+	<licence>agpl</licence>
+	<author mail="asdf@walura.eu" homepage="">powerflo</author>
+	<namespace>NextRename</namespace>
+	<category>files</category>
+	<bugs>https://github.com/powerflo</bugs>
+	<dependencies>
+		<nextcloud min-version="29" max-version="29"/>
+	</dependencies>
+</info>
