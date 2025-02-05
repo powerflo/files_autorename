@@ -7,16 +7,20 @@ use Psr\Log\LoggerInterface;
 use OCP\Files\IRootFolder;
 use OCA\NextRename\Service\RenameFileProcessor;
 use OCP\Files\File;
+use OCP\Files\Folder;
+use OCP\Notification\IManager;
 
 class RenameJob extends QueuedJob {
     private LoggerInterface $logger;
     private IRootFolder $rootFolder;
+    private IManager $notificationManager;
 
-    public function __construct(ITimeFactory $time, LoggerInterface $logger, IRootFolder $rootFolder) {
+    public function __construct(ITimeFactory $time, LoggerInterface $logger, IRootFolder $rootFolder, IManager $notificationManager) {
         parent::__construct($time);
 
         $this->logger = $logger;
         $this->rootFolder = $rootFolder;
+        $this->notificationManager = $notificationManager;
     }
 
     protected function run($arguments) {
@@ -25,11 +29,8 @@ class RenameJob extends QueuedJob {
             return;
         }
 
-        $this->logger->warning($this->rootFolder->getPath());
-        $this->logger->warning("Arguments: " . print_r($arguments, true), ['app' => 'nextrename']);
-        
-        // Perform the renaming logic here...
-        
+        $this->logger->debug("Arguments: " . print_r($arguments, true), ['app' => 'nextrename']);
+                
         $file = $this->rootFolder->getFirstNodeByIdInPath($arguments['id'], $arguments['path']);
 
         if (!($file instanceof File)) {
@@ -43,28 +44,52 @@ class RenameJob extends QueuedJob {
 
         $renameFileProcessor = new RenameFileProcessor($this->logger);
         $newName = $renameFileProcessor->processRenameFile($file);
+
+        if ($newName === null) {
+            $this->logger->debug('No matching rename rule found for ' . $file->getName());
+            return;
+        }
+
+        $parent = $file->getParent();
+        $this->logger->info('Renaming ' . $file->getName() . ' to ' . $newName);
+
+        // Do not rename if a file with the new name already exists
+        if ($parent->nodeExists($newName)) {
+            $this->logger->warning('File with the new name already exists: ' . $newName);
+            return;
+        }
+
+        $newDirPath = dirname($newName);
         
-        if ($newName !== null) {
-            $parent = $file->getParent();
-            $this->logger->warning('Renaming ' . $file->getName() . ' to ' . $newName);
-
-            // Do not rename if a file with the new name already exists
-            if ($parent->nodeExists($newName)) {
-                $this->logger->error('File with the new name already exists: ' . $newName);
-                return;
-            }
-
-            try {
-                $file->move($parent->getPath() . '/' . $newName);
-                $this->logger->warning('File renamed successfully');
-            } catch (\Exception $ex) {
-                $this->logger->error('Error renaming file: ' . $ex->getMessage());
-            }
-        } else {
-            $this->logger->warning('No matching rename rule found for ' . $file->getName());
+        // Check if the directory exists, and create it if it doesn't
+        if (!$parent->nodeExists($newDirPath)) {
+            $this->logger->debug('Directory does not exist, creating: ' . $newDirPath);
+            $this->createDirectories($parent, $newDirPath);
+        }
+        
+        try {
+            $newPath = $parent->getPath() . '/' . $newName;
+            $file->move($newPath);
+            $this->logger->debug('File renamed successfully');
+        } catch (\Exception $ex) {
+            $this->logger->error('Error renaming file: ' . $ex->getMessage());
         }
 
         # After rename OCP\Files\NotFoundException is thrown by /apps/files_versions/lib/Listener/FileEventsListener.php
         # But this is a known issue: https://github.com/nextcloud/server/issues/42343
+    }
+
+    private function createDirectories(Folder $parent, string $path): void {
+        $parts = explode('/', $path);
+        $currentPath = '';
+        foreach ($parts as $part) {
+            if ($part === '') {
+                continue;
+            }
+            $currentPath .= '/' . $part;
+            if (!$parent->nodeExists($currentPath)) {
+                $parent->newFolder($currentPath);
+            }
+        }
     }
 }
