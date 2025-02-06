@@ -2,9 +2,19 @@
 <info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	  xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
 	<id>files_autorename</id>
-	<name>Auto Rename</name>
-	<summary>Summary</summary>
-	<description>Description</description>
+	<name>AutoRename</name>
+	<summary>Automatically rename and move files based on configurable rules</summary>  
+	<description>  
+	AutoRename is a Nextcloud app that renames and organizes newly added or moved files based on user-defined rules.  
+	By placing a `.rename.conf` file in a folder, users can specify regex-based patterns to rename or move files.  
+
+	Renaming is handled by a background job that runs every few minutes, so changes may not be immediate.
+
+	Features:  
+	- Define renaming and moving rules with regex  
+	- Automatically process newly added or moved files  
+	- Organize files into subfolders dynamically  
+	</description>
 	<version>1.0.0</version>
 	<licence>agpl</licence>
 	<author mail="asdf@walura.eu" homepage="">powerflo</author>
