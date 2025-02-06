@@ -1,0 +1,20 @@
+# File renaming rules for files moved or added to this folder.
+#
+# Each rule consists of a pattern and a replacement.
+# The format for each line is:
+# pattern:replacement
+# where:
+# - pattern is the regular expression to match the original file name
+# - replacement is the format for the new name; if it contains a path to a subfolder, then the file is moved
+#
+# Multiple rules can be defined, and the first matching rule will be applied.
+# 
+# You can learn more and test your regex patterns at: https://regex101.com
+#
+# Example:
+# Rename "Entgeltabrechnung_Januar_2022.pdf" to "2022-01_Entgeltabrechnung.pdf":
+# ^Entgeltabrechnung_Januar_(\d{4})\.pdf$:$1-01_Entgeltabrechnung.pdf
+#
+# Example:
+# Move "Entgeltabrechnung_Januar_2022.pdf" to "2022/2022_01_Entgeltabrechnung.pdf":
+# ^Entgeltabrechnung_Januar_(\d{4})\.pdf$:$1/$1-01_Entgeltabrechnung.pdf
