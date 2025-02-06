@@ -1,8 +1,8 @@
 <?php
-namespace OCA\NextRename\Event;
+namespace OCA\Files_AutoRename\Event;
 
-use OCA\NextRename\Jobs\RenameJob;
-use OCA\NextRename\Service\RenameFileProcessor;
+use OCA\Files_AutoRename\Jobs\RenameJob;
+use OCA\Files_AutoRename\Service\RenameFileProcessor;
 use OCP\BackgroundJob\IJobList;
 use function OCP\Log\logger;
 use OCP\EventDispatcher\Event;
@@ -28,7 +28,7 @@ class RenameListener implements IEventListener {
     }
 
     public function handle(Event $event): void {
-        logger('nextrename')->debug('RenameListener::handle called');
+        logger('files_autorename')->debug('RenameListener::handle called');
         if (!($event instanceOf NodeRenamedEvent) && !($event instanceOf NodeWrittenEvent)) {
             return;
         }
@@ -47,13 +47,13 @@ class RenameListener implements IEventListener {
         }
 
         $filePath = $targetNode->getPath();
-        logger('nextrename')->debug('Processing file at path: ' . $filePath);
+        logger('files_autorename')->debug('Processing file at path: ' . $filePath);
 
         $renameFileProcessor = new RenameFileProcessor($this->logger);
         $newName = $renameFileProcessor->processRenameFile($targetNode);
 
         if ($newName !== null) {
-            logger('nextrename')->info('Create a RenameJob for ' . $targetNode->getPath());
+            logger('files_autorename')->info('Create a RenameJob for ' . $targetNode->getPath());
             try {
                 $this->jobList->add(RenameJob::class, ['id' => $targetNode->getId(), 'path' => $targetNode->getParent()->getPath()]);
             } catch (\Exception $ex) {

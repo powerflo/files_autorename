@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OCA\NextRename\AppInfo;
+namespace OCA\Files_AutoRename\AppInfo;
 
-use OCA\NextRename\Event\RenameListener;
+use OCA\Files_AutoRename\Event\RenameListener;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
@@ -14,7 +14,7 @@ use OCP\Files\Events\Node\NodeRenamedEvent;
 use OCP\Files\Events\Node\NodeWrittenEvent;
 
 class Application extends App implements IBootstrap {
-	public const APP_ID = 'nextrename';
+	public const APP_ID = 'files_autorename';
 
 	/** @psalm-suppress PossiblyUnusedMethod */
 	public function __construct() {

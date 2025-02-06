@@ -7,3 +7,4 @@
 /.php-cs-fixer.cache
 /tests/.phpunit.cache
 
+.DS_Store

@@ -1,11 +1,11 @@
 <?php
-namespace OCA\NextRename\Jobs;
+namespace OCA\Files_AutoRename\Jobs;
 
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\QueuedJob;
 use Psr\Log\LoggerInterface;
 use OCP\Files\IRootFolder;
-use OCA\NextRename\Service\RenameFileProcessor;
+use OCA\Files_AutoRename\Service\RenameFileProcessor;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Notification\IManager;
@@ -25,11 +25,11 @@ class RenameJob extends QueuedJob {
 
     protected function run($arguments) {
         if (!isset($arguments['id']) || !isset($arguments['path'])) {
-            $this->logger->error('RenameJob: Missing id or path argument', ['app' => 'nextrename']);
+            $this->logger->error('RenameJob: Missing id or path argument', ['app' => 'files_autorename']);
             return;
         }
 
-        $this->logger->debug("Arguments: " . print_r($arguments, true), ['app' => 'nextrename']);
+        $this->logger->debug("Arguments: " . print_r($arguments, true), ['app' => 'files_autorename']);
                 
         $file = $this->rootFolder->getFirstNodeByIdInPath($arguments['id'], $arguments['path']);
 
@@ -38,7 +38,7 @@ class RenameJob extends QueuedJob {
         }
         
         if ($file === null) {
-            $this->logger->error('RenameJob: File not found', ['app' => 'nextrename']);
+            $this->logger->error('RenameJob: File not found', ['app' => 'files_autorename']);
             return;
         }
 

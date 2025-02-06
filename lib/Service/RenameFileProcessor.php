@@ -1,6 +1,6 @@
 <?php
 
-namespace OCA\NextRename\Service;
+namespace OCA\Files_AutoRename\Service;
 
 use OCP\Files\File;
 use OCP\Files\Folder;
@@ -66,9 +66,9 @@ class RenameFileProcessor {
 
     private static function matchRules(array $rules, string $fileName): ?string {
         foreach ($rules as $rule) {
-            $regex = '/' . $rule['pattern'] . '/';
-            if (preg_match($regex, $fileName)) {
-                return preg_replace($regex, $rule['replacement'], $fileName);
+            $pattern = '/' . $rule['pattern'] . '/';
+            if (preg_match($pattern, $fileName)) {
+                return preg_replace($pattern, $rule['replacement'], $fileName);
             }
         }
         return null;
