@@ -26,6 +26,7 @@
     </documentation>
 	<category>files</category>
 	<bugs>https://github.com/powerflo/files_autorename/issues</bugs>
+	<screenshot>https://raw.githubusercontent.com/powerflo/files_autorename/refs/heads/main/screenshots/screenshot-dot-rename-conf.png</screenshot>
 	<dependencies>
 		<nextcloud min-version="29"/>
 	</dependencies>
