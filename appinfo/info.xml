@@ -17,7 +17,7 @@
 	</description>
 	<version>1.0.0</version>
 	<licence>agpl</licence>
-	<author mail="asdf@walura.eu" homepage="">powerflo</author>
+	<author mail="asdf@walura.eu">powerflo</author>
 	<namespace>Files_AutoRename</namespace>
 	<documentation>
         <user>https://github.com/powerflo/files_autorename</user>
@@ -28,6 +28,6 @@
 	<bugs>https://github.com/powerflo/files_autorename/issues</bugs>
 	<screenshot>https://raw.githubusercontent.com/powerflo/files_autorename/refs/heads/main/screenshots/screenshot-dot-rename-conf.png</screenshot>
 	<dependencies>
-		<nextcloud min-version="29"/>
+		<nextcloud min-version="30" max-version="32"/>
 	</dependencies>
 </info>
