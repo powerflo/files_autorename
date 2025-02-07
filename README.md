@@ -26,10 +26,10 @@ To use AutoRename, create a `.rename.conf` file in the desired folder. The file 
 
 `pattern:replacement`
 
- The pattern is a regular expression to match the original file name. You can learn more and test your regex patterns at: https://regex101.com
+ The pattern is a regular expression to match the original file name. You can learn more and test your regex patterns at [regex101.com](https://regex101.com)
 
 
-### Example Rules  
+### Example Rules
 
 #### Rename a file  
 Rename `Entgeltabrechnung_Januar_2022.pdf` to `2022-01_Entgeltabrechnung.pdf`:  
@@ -46,6 +46,9 @@ Move `Entgeltabrechnung_Januar_2022.pdf` to `2022/2022-01_Entgeltabrechnung.pdf`
 ^Entgeltabrechnung_Januar_(\d{4}).pdf$:$1/$1-01_Entgeltabrechnung.pdf
 ```
 
+#### rename.conf.example
+
+More examples in [.rename.conf.example](.rename.conf.example).
 
 ## Notes  
 

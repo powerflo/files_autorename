@@ -1,20 +1,20 @@
-# File renaming rules for files moved or added to this folder.
-#
-# Each rule consists of a pattern and a replacement.
-# The format for each line is:
-# pattern:replacement
-# where:
-# - pattern is the regular expression to match the original file name
-# - replacement is the format for the new name; if it contains a path to a subfolder, then the file is moved
-#
-# Multiple rules can be defined, and the first matching rule will be applied.
-# 
-# You can learn more and test your regex patterns at: https://regex101.com
-#
-# Example:
-# Rename "Entgeltabrechnung_Januar_2022.pdf" to "2022-01_Entgeltabrechnung.pdf":
-# ^Entgeltabrechnung_Januar_(\d{4})\.pdf$:$1-01_Entgeltabrechnung.pdf
-#
-# Example:
-# Move "Entgeltabrechnung_Januar_2022.pdf" to "2022/2022_01_Entgeltabrechnung.pdf":
-# ^Entgeltabrechnung_Januar_(\d{4})\.pdf$:$1/$1-01_Entgeltabrechnung.pdf
+# Rename "Entgeltabrechnung_Januar_2022 something(.pdf)" to "2022-01_Entgeltabrechnung something(.pdf)":
+^(Entgeltabrechnung_Januar)_(\d{4})(.*)(\.pdf)$:$2-01_$1$3$4
+^(Entgeltabrechnung_Februar)_(\d{4})(.*)(\.pdf)$:$2-02_$1$3$4
+^(Entgeltabrechnung_März)_(\d{4})(.*)(\.pdf)$:$2-03_$1$3$4
+^(Entgeltabrechnung_April)_(\d{4})(.*)(\.pdf)$:$2-04_$1$3$4
+^(Entgeltabrechnung_Mai)_(\d{4})(.*)(\.pdf)$:$2-05_$1$3$4
+^(Entgeltabrechnung_Juni)_(\d{4})(.*)(\.pdf)$:$2-06_$1$3$4
+^(Entgeltabrechnung_Juli)_(\d{4})(.*)(\.pdf)$:$2-07_$1$3$4
+^(Entgeltabrechnung_August)_(\d{4})(.*)(\.pdf)$:$2-08_$1$3$4
+^(Entgeltabrechnung_September)_(\d{4})(.*)(\.pdf)$:$2-09_$1$3$4
+^(Entgeltabrechnung_Oktober)_(\d{4})(.*)(\.pdf)$:$2-10_$1$3$4
+^(Entgeltabrechnung_November)_(\d{4})(.*)(\.pdf)$:$2-11_$1$3$4
+^(Entgeltabrechnung_Dezember)_(\d{4})(.*)(\.pdf)$:$2-12_$1$3$4
+
+# Move account statements to "Kontoauszüge/YEAR/FILENAME"
+(^Kontoauszug.*_(20\d{2})_.*\.pdf$):Kontoauszüge/$2/$1
+
+# Move securities documents to "Wertpapierdokumente/YEAR/FILENAME"
+(^Ertragsabrechnung.*\.(20\d{2})_.*\.pdf$):Wertpapierdokumente/$2/$1
+(^Depotauszug.*\.(20\d{2})_.*\.pdf$):Wertpapierdokumente/$2/$1
