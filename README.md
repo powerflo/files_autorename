@@ -10,7 +10,7 @@ AutoRename is a Nextcloud app that automatically renames and organizes newly add
 
 ## Features  
 
-✅ Define renaming and moving rules with regex  
+✅ Define renaming and moving rules with regular expressions  
 ✅ Automatically process newly added or moved files  
 ✅ Organize files into subfolders dynamically  
 

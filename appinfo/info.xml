@@ -10,11 +10,11 @@
 	Renaming is handled by a background job that runs every few minutes, so changes may not be immediate.
 
 	Features:  
-	- Define renaming and moving rules with regex  
+	- Define renaming and moving rules with regular expressions  
 	- Automatically process newly added or moved files  
 	- Organize files into subfolders dynamically
 	]]></description>
-	<version>1.0.0</version>
+	<version>1.1.0</version>
 	<licence>agpl</licence>
 	<author mail="asdf@walura.eu">powerflo</author>
 	<namespace>Files_AutoRename</namespace>
