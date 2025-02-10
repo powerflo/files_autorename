@@ -13,6 +13,7 @@ AutoRename is a Nextcloud app that automatically renames and organizes newly add
 ✅ Define renaming and moving rules with regular expressions  
 ✅ Automatically process newly added or moved files  
 ✅ Organize files into subfolders dynamically  
+✅ Use placeholders to insert the current date in filenames  
 
 ## Installation  
 
@@ -26,8 +27,7 @@ To use AutoRename, create a `.rename.conf` file in the desired folder. The file 
 
 `pattern:replacement`
 
- The pattern is a regular expression to match the original file name. You can learn more and test your regex patterns at [regex101.com](https://regex101.com)
-
+The pattern is a regular expression to match the original file name. You can learn more and test your regex patterns at [regex101.com](https://regex101.com)
 
 ### Example Rules
 
@@ -44,6 +44,12 @@ Move `Entgeltabrechnung_Januar_2022.pdf` to `2022/2022-01_Entgeltabrechnung.pdf`
 
 ```
 ^Entgeltabrechnung_Januar_(\d{4}).pdf$:$1/$1-01_Entgeltabrechnung.pdf
+```
+
+#### Use the current date in the filename
+Rename `report.pdf` to `report_2025-02-10.pdf` (assuming today's date is 2025-02-10):
+```
+^(report)(.pdf)$:$1_{date}$2
 ```
 
 #### rename.conf.example
@@ -66,4 +72,4 @@ Contributions are welcome! Feel free to submit issues and pull requests.
 
 ---
 
-🚀 **Simplify your file management with AutoRename!**  
+🚀 **Simplify your file management with AutoRename!**

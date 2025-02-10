@@ -69,21 +69,22 @@ class RenameJob extends QueuedJob {
 
         $parent = $file->getParent();
         $newDirPath = dirname($newName);
-        $newDir = $parent->get($newDirPath);
-
+        
         $this->logger->info('Matching rename rule found for ' . $file->getName() . ' - renaming to ' . $newName);
-
+        
         // Do not rename if a file with the new name already exists
         if ($parent->nodeExists($newName)) {
             $this->logger->warning('File with the new name already exists: ' . $newName);
             return;
         }
-
+        
         // Check if the directory exists, and create it if it doesn't
         if (!$parent->nodeExists($newDirPath)) {
             $this->logger->debug('Target directory does not exist, creating: ' . $newDirPath);
             $this->createDirectories($parent, $newDirPath);
         }
+        
+        $newDir = $parent->get($newDirPath);
         
         try {
             // Check permissions to create a file in the target directory

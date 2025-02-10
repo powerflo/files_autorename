@@ -17,16 +17,8 @@ class RenameFileProcessor {
         $this->logger = $logger;
     }
 
-    public function readRenameFile(Folder $parent): ?string {
-        $renameFile = $parent->get(self::RENAME_FILE_NAME);
-        if ($renameFile instanceof File) {
-            return $renameFile->getContent();
-        } else {
-            $this->logger->error('Error reading ' . self::RENAME_FILE_NAME . ' file: ' . $parent->getPath() . ' is not a file');
-            return null;
-        }
-    }
-    
+    // If a .rename.conf file is found in the parent folder of the file,
+    // apply the rules to the file name and return the new file name
     public function processRenameFile(File $file): ?string {
         $parent = $file->getParent();
         
@@ -38,11 +30,24 @@ class RenameFileProcessor {
         }
         
         $rules = self::parseRules($contents);
+        $rules = self::applyPlaceholders($rules);
         $this->logger->debug('Number of rules in ' . self::RENAME_FILE_NAME . ': ' . count($rules));
 
         return self::matchRules($rules, $file->getName());
     }
 
+    // Read the contents of the .rename.conf file
+    private function readRenameFile(Folder $parent): ?string {
+        $renameFile = $parent->get(self::RENAME_FILE_NAME);
+        if ($renameFile instanceof File) {
+            return $renameFile->getContent();
+        } else {
+            $this->logger->error('Error reading ' . self::RENAME_FILE_NAME . ' file: ' . $parent->getPath() . ' is not a file');
+            return null;
+        }
+    }
+
+    // Parse the contents of the .rename.conf file and return an array of rules
     private static function parseRules(string $contents): array {
         $lines = explode("\n", $contents);
         $rules = [];
@@ -64,6 +69,24 @@ class RenameFileProcessor {
         return $rules;
     }
 
+    // Replace placeholders in the replacement string
+    private static function applyPlaceholders(array $rules): array {
+        foreach ($rules as &$rule) {
+            $rule['replacement'] = self::applyDatePlaceholder($rule['replacement']);
+        }
+        return $rules;
+    }
+
+    // Replace {date|format} or {date} placeholders with the current date
+    // The format should be a valid date format string for PHP's date() function
+    private static function applyDatePlaceholder(string $replacement): string {
+        return preg_replace_callback('/\{date(?:\|([^}]+))?\}/', function ($matches) {
+            $format = $matches[1] ?? 'Y-m-d'; // Use 'Y-m-d' as the default format
+            return date($format);
+        }, $replacement);
+    }
+
+    // Match the file name against the rules and return the new file name
     private static function matchRules(array $rules, string $fileName): ?string {
         foreach ($rules as $rule) {
             $pattern = '/' . $rule['pattern'] . '/';
