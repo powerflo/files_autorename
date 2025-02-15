@@ -20,8 +20,12 @@ class RenameFileProcessor {
     // If a .rename.conf file is found in the parent folder of the file,
     // apply the rules to the file name and return the new file name
     public function processRenameFile(File $file): ?string {
+        // Don't rename the configuration file itself
+        if ($file->getName() === self::RENAME_FILE_NAME) {
+            return null;
+        }
+
         $parent = $file->getParent();
-        
         try {
             $contents = $this->readRenameFile($parent);
         } catch (\OCP\Files\NotFoundException $e) {
