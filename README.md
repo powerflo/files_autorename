@@ -53,7 +53,7 @@ The pattern is a regular expression to match the original file name. You can lea
 ^Ertragsabrechnung.*\.(20\d{2})_.*\.pdf$:Wertpapierdokumente/$1/$0
 ^Depotauszug.*\.(20\d{2})_.*\.pdf$:Wertpapierdokumente/$1/$0
 
-# Change date format in filename from tt.mm.yyyy to yyyy-mm-tt
+# Change date format in filename from dd.mm.yyyy to yyyy-mm-dd
 (.*)(\d{2})\.(\d{2})\.(20\d{2})(.*):$1$4-$3-$2$5
 
 # Use the current date in the filename
