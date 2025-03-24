@@ -1,29 +1,29 @@
-# AutoRename  
+# AutoRename
 
-AutoRename is a Nextcloud app that automatically renames and organizes newly added or moved files based on user-defined rules.  
+AutoRename is a Nextcloud app that automatically renames and organizes newly added or moved files based on user-defined rules.
 
-## How It Works  
+## How It Works
 
-- Place a `.rename.conf` file in a folder to define renaming and moving rules using regular expressions.  
-- When files are uploaded or moved into that folder, they will be renamed or moved according to the rules.  
-- A background job runs every few minutes to process the files, so changes may not be immediate. 
+- Place a `.rename.conf` file in a folder to define renaming and moving rules using regular expressions.
+- When files are uploaded or moved into that folder, they will be renamed or moved according to the rules.
+- A background job runs every few minutes to process the files, so changes may not be immediate.
 
-## Features  
+## Features
 
 ✅ Define renaming and moving rules with regular expressions  
 ✅ Automatically process newly added or moved files  
 ✅ Organize files into subfolders dynamically  
-✅ Use placeholders to insert the current date in filenames  
+✅ Use placeholders to insert the current date in filenames
 
-## Installation  
+## Installation
 
-1. Install [AutoRename via the Nextcloud App Store](https://apps.nextcloud.com/apps/files_autorename) or manually place the app in the `apps-extra/` directory.  
-2. Enable the app in the Nextcloud admin panel.  
-3. Ensure background jobs (cron) are configured for Nextcloud.  
+1. Install [AutoRename via the Nextcloud App Store](https://apps.nextcloud.com/apps/files_autorename) or manually place the app in the `apps-extra/` directory.
+2. Enable the app in the Nextcloud admin panel.
+3. Ensure background jobs (cron) are configured for Nextcloud.
 
-## Configuration  
+## Configuration
 
-To use AutoRename, create a `.rename.conf` file in the desired folder. The file should contain rules in the following format:  
+To use AutoRename, create a `.rename.conf` file in the desired folder. The file should contain rules in the following format:
 
 `pattern:replacement`
 
@@ -65,20 +65,35 @@ The pattern is a regular expression to match the original file name. You can lea
 ^(report)(\.pdf)$:$1_{date|d-m-Y}$2
 ```
 
-## Notes  
+## Notes
 
-- The first matching rule in `.rename.conf` will be applied. 
+- The first matching rule in `.rename.conf` will be applied.
 - Only newly added or moved files are processed; existing files are not renamed.
 - Processing occurs in a background job, so file renaming may take a few minutes.
 
-## License  
+# FAQ
 
-This project is licensed under the [GNU Affero General Public License](LICENSE).  
+### How to contribute?
+Contributions are welcome! Feel free to submit issues and pull requests.
 
-## Contributing  
+### Why isn’t AutoRename renaming files on my external storage?
 
-Contributions are welcome! Feel free to submit issues and pull requests.  
+If files are copied directly to the external storage, AutoRename can not trigger the renaming process. Instead, upload files through the Nextcloud web interface, mobile app, or desktop client.
 
----
+### How can I customize the date format in the replace string?
 
-🚀 **Simplify your file management with AutoRename!**
+To insert the current date in a specific format, use the syntax `{date|format}`, where `format` follows PHP's date formatting options.​
+
+Example:
+
+- `{date|Y-m-d}` → `2025-02-10` (default format)
+- `{date|m/d/y}` → `02/10/25`​
+
+Common format characters:
+
+- `d`: Day of the month, two digits (e.g., `01` to `31`)​
+- `m`: Month, two digits (e.g., `01` to `12`)​
+- `Y`: Year, four digits (e.g., `2025`)​
+- `y`: year, two digits (e.g., `25`)
+
+For a full list of formatting options, refer to the official PHP documentation: https://www.php.net/manual/en/datetime.format.php.
