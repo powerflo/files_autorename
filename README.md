@@ -13,7 +13,7 @@ AutoRename is a Nextcloud app that automatically renames and organizes newly add
 ✅ Define renaming and moving rules with regular expressions  
 ✅ Automatically process newly added or moved files  
 ✅ Organize files into subfolders dynamically  
-✅ Use placeholders to insert the current date in filenames
+✅ Use placeholders to insert metadata such as the current date, file modification time, or EXIF data in filenames  
 
 ## Installation
 
@@ -56,13 +56,9 @@ The pattern is a regular expression to match the original file name. You can lea
 # Change date format in filename from dd.mm.yyyy to yyyy-mm-dd
 (.*)(\d{2})\.(\d{2})\.(20\d{2})(.*):$1$4-$3-$2$5
 
-# Use the current date in the filename
+# Use the current date in the filename. Refer to the FAQ for a complete list of available placeholders.
 # Rename "report.pdf" to "report_2025-02-10.pdf" (assuming today's date is 2025-02-10)
 ^(report)(\.pdf)$:$1_{date}$2
-
-# Use a custom date format in the filename
-# Rename "report.pdf" to "report_10-02-2025.pdf" (assuming today's date is 2025-02-10)
-^(report)(\.pdf)$:$1_{date|d-m-Y}$2
 ```
 
 ## Notes
@@ -80,20 +76,35 @@ Contributions are welcome! Feel free to submit issues and pull requests.
 
 If files are copied directly to the external storage, AutoRename can not trigger the renaming process. Instead, upload files through the Nextcloud web interface, mobile app, or desktop client.
 
-### How can I customize the date format in the replace string?
+### What placeholders can I use in the replacement string?
 
-To insert the current date in a specific format, use the syntax `{date|format}`, where `format` follows PHP's date formatting options.​
+You can use the following placeholders to automatically inject metadata into the new file name:
 
-Example:
+| Placeholder            | Description                                                                 |
+|------------------------|-----------------------------------------------------------------------------|
+| `{photoDateTime}`      | Original date/time the photo was taken from EXIF metadata. If that's not available, it falls back to the file modification time. |
+| `{exifDateTimeOriginal}` | Original date/time the photo was taken, extracted from EXIF metadata. Returns an empty string if EXIF data is not available. **Note: The Photos app must be installed for EXIF metadata to be available.** |
+| `{fileModifiedAt}`     | The file's last modified timestamp, from the file system.                   |
+| `{date}`               | The current date and time.                      |
+
+### How can I customize the date/time format of the placeholder?
+
+To insert a date or time in a specific format, use the syntax `{placeholder|format}`, where `format` follows PHP's date formatting options.
+
+#### Example:
 
 - `{date|Y-m-d}` → `2025-02-10` (default format)
 - `{date|m/d/y}` → `02/10/25`​
+- `{date|Y-m-d_H-i-s}` → `2025-02-10_14-30-15` (Year-Month-Day_Hour-Minute-Second)
 
-Common format characters:
+#### Common format characters:
 
 - `d`: Day of the month, two digits (e.g., `01` to `31`)​
 - `m`: Month, two digits (e.g., `01` to `12`)​
 - `Y`: Year, four digits (e.g., `2025`)​
 - `y`: year, two digits (e.g., `25`)
+- `H`: Hour in 24-hour format (e.g., `00` to `23`)
+- `i`: Minute, two digits (e.g., `00` to `59`)
+- `s`: Second, two digits (e.g., `00` to `59`)
 
 For a full list of formatting options, refer to the official PHP documentation: https://www.php.net/manual/en/datetime.format.php.

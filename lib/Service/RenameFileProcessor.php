@@ -5,6 +5,7 @@ namespace OCA\Files_AutoRename\Service;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use Psr\Log\LoggerInterface;
+use DateTime;
 
 class RenameFileProcessor {
     private $logger;
@@ -34,10 +35,11 @@ class RenameFileProcessor {
         }
         
         $rules = self::parseRules($contents);
-        $rules = self::applyPlaceholders($rules);
         $this->logger->debug('Number of rules in ' . self::RENAME_FILE_NAME . ': ' . count($rules));
 
-        return self::matchRules($rules, $file->getName());
+        $newName = self::matchRules($rules, $file->getName());
+        $newName = self::applyPlaceholders($newName, $file);
+        return $newName;
     }
 
     // Read the contents of the .rename.conf file
@@ -74,11 +76,16 @@ class RenameFileProcessor {
     }
 
     // Replace placeholders in the replacement string
-    private static function applyPlaceholders(array $rules): array {
-        foreach ($rules as &$rule) {
-            $rule['replacement'] = self::applyDatePlaceholder($rule['replacement']);
+    private static function applyPlaceholders(string|null $name, File $file): string|null {
+        if ($name === null) {
+            return null;
         }
-        return $rules;
+
+        $name = self::applyDatePlaceholder($name);
+        $name = self::applyFileMTimePlaceholder($name, $file);
+        $name = self::applyExifDateTimeOriginalPlaceholder($name, $file);
+        $name = self::applyPhotoDateTimePlaceholder($name, $file);
+        return $name;
     }
 
     // Replace {date|format} or {date} placeholders with the current date
@@ -87,6 +94,56 @@ class RenameFileProcessor {
         return preg_replace_callback('/\{date(?:\|([^}]+))?\}/', function ($matches) {
             $format = $matches[1] ?? 'Y-m-d'; // Use 'Y-m-d' as the default format
             return date($format);
+        }, $replacement);
+    }
+
+    // Replace {fileModifiedAt|format} or {fileModifiedAt} with the file's last modified time
+    // The format should be a valid date format string for PHP's date() function
+    private static function applyFileMTimePlaceholder(string $replacement, File $file): string {
+        return preg_replace_callback('/\{fileModifiedAt(?:\|([^}]+))?\}/', function ($matches) use ($file) {
+            $format = $matches[1] ?? 'Y-m-d'; // Use 'Y-m-d' as the default format
+            return date($format, $file->getMTime());
+        }, $replacement);
+    }
+
+    // Replace {exifDateTimeOriginal|format} or {exifDateTimeOriginal} with the DateTimeOriginal value from EXIF data
+    // The format should be a valid date format string for PHP's date() function
+    private static function applyExifDateTimeOriginalPlaceholder(string $replacement, File $file): string {
+        return preg_replace_callback('/\{exifDateTimeOriginal(?:\|([^}]+))?\}/', function ($matches) use ($file) {
+            $format = $matches[1] ?? 'Y-m-d'; // Use 'Y-m-d' as the default format
+            
+            // The photos app writes the EXIF data to the metadata
+            $metadata = $file->getMetadata();
+            if (!isset($metadata['photos-exif']['DateTimeOriginal'])) {
+                // TODO: try to generate metadata because it may have not yet been generated
+                return '';
+            }
+            $exifDateTimeOriginal = $metadata['photos-exif']['DateTimeOriginal'];
+
+            // Convert the EXIF dateTimeOriginal format to a DateTime object
+            $dateTime = DateTime::createFromFormat('Y:m:d H:i:s', $exifDateTimeOriginal);
+            return $dateTime->format($format);
+        }, $replacement);
+    }
+
+    // Replace {photoDateTime|format} or {photoDateTime} with the DateTimeOriginal value from EXIF data or fallback to the file's last modified time
+    // The format should be a valid date format string for PHP's date() function
+    private static function applyPhotoDateTimePlaceholder(string $replacement, File $file): string {
+        return preg_replace_callback('/\{photoDateTime(?:\|([^}]+))?\}/', function ($matches) use ($file) {
+            $format = $matches[1] ?? 'Y-m-d'; // Use 'Y-m-d' as the default format
+            
+            // The photos app writes the EXIF data to the metadata
+            $metadata = $file->getMetadata();
+            if (!isset($metadata['photos-exif']['DateTimeOriginal'])) {
+                // fallback to file modified time
+                return date($format, $file->getMTime());;
+            }
+            $exifDateTimeOriginal = $metadata['photos-exif']['DateTimeOriginal'];
+
+            // Convert the EXIF dateTimeOriginal format to a DateTime object
+            $dateTime = DateTime::createFromFormat('Y:m:d H:i:s', $exifDateTimeOriginal);
+            
+            return $dateTime->format($format);
         }, $replacement);
     }
 
