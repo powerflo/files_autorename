@@ -8,45 +8,40 @@ use OCP\Files\IRootFolder;
 use OCA\Files_AutoRename\Service\RenameFileProcessor;
 use OCP\Files\File;
 use OCP\Files\Folder;
-use OCP\IUserManager;
 use OCP\IUserSession;
-use OCP\Notification\IManager;
-use OCP\Remote\IUser;
+use OCP\FilesMetadata\IFilesMetadataManager;
+use OCP\BackgroundJob\IJobList;
 
 class RenameJob extends QueuedJob {
     private LoggerInterface $logger;
     private IRootFolder $rootFolder;
-    private $userSession;
-    private $userManager;
-    private IManager $notificationManager;
+    private IUserSession $userSession;
+    private IFilesMetadataManager $filesMetadataManager;
+    private IJobList $jobList;
 
     public function __construct(
             ITimeFactory $time,
             LoggerInterface $logger,
             IRootFolder $rootFolder,
             IUserSession $userSession,
-            IUserManager $userManager,
-            IManager $notificationManager) {
+            IFilesMetadataManager $filesMetadataManager,
+            IJobList $jobList) {
         parent::__construct($time);
 
         $this->logger = $logger;
         $this->rootFolder = $rootFolder;
         $this->userSession = $userSession;
-        $this->userManager = $userManager;
-        $this->notificationManager = $notificationManager;
+        $this->filesMetadataManager = $filesMetadataManager;
+        $this->jobList = $jobList;
     }
 
     protected function run($arguments) {
-        $this->logger->debug('RenameJob: Running', ['app' => 'files_autorename']);
+        $this->logger->debug("RenameJob running with arguments: " . print_r($arguments, true), ['app' => 'files_autorename']);
 
-        if (!isset($arguments['uid']) || !isset($arguments['id']) || !isset($arguments['path'])) {
+        if (!isset($arguments['id']) || !isset($arguments['path']) || !isset($arguments['retryCount'])) {
             $this->logger->error('RenameJob: Missing arguments');
             return;
         }
-
-        $this->userSession->setUser($this->userManager->get($arguments['uid']));
-
-        $this->logger->debug("Arguments: " . print_r($arguments, true), ['app' => 'files_autorename']);
                 
         $file = $this->rootFolder->getFirstNodeByIdInPath($arguments['id'], $arguments['path']);
 
@@ -59,6 +54,12 @@ class RenameJob extends QueuedJob {
             return;
         }
 
+        if (isset($arguments['refreshMetadata'])) {
+            $this->logger->info('Refreshing metadata for ' . $file->getName());
+            $metadata = $this->filesMetadataManager->refreshMetadata($file, IFilesMetadataManager::PROCESS_LIVE);
+            $this->logger->debug('File metadata: ' . print_r($metadata, true), ['app' => 'files_autorename']);
+        }
+
         $renameFileProcessor = new RenameFileProcessor($this->logger);
         $newName = $renameFileProcessor->processRenameFile($file);
 
@@ -67,10 +68,13 @@ class RenameJob extends QueuedJob {
             return;
         }
 
+        $this->logger->info('Matching rename rule found for ' . $file->getName() . ' - renaming to ' . $newName);
+        
         $parent = $file->getParent();
         $newDirPath = dirname($newName);
+        $newDir = $parent->get($newDirPath);
         
-        $this->logger->info('Matching rename rule found for ' . $file->getName() . ' - renaming to ' . $newName);
+        $this->userSession->setUser($parent->getOwner());
         
         // Do not rename if a file with the new name already exists
         if ($parent->nodeExists($newName)) {
@@ -84,21 +88,25 @@ class RenameJob extends QueuedJob {
             $this->createDirectories($parent, $newDirPath);
         }
         
-        $newDir = $parent->get($newDirPath);
-        
-        try {
-            // Check permissions to create a file in the target directory
-            // It seems like Nextcloud does not check the permissions properly when moving a file
-            if ($newDirPath !== '.' && !$newDir->isCreatable()) {
-                throw new \OCP\Files\NotPermittedException('No permission to create file in ' . $newDirPath);
-            }
+        // Check permissions to create a file in the target directory
+        // It seems like Nextcloud does not check the permissions properly when moving a file
+        if ($newDirPath !== '.' && !$newDir->isCreatable()) {
+            throw new \OCP\Files\NotPermittedException('No permission to create file in ' . $newDirPath);
+        }
 
+        try {
             $newPath = $parent->getPath() . '/' . $newName;
             $this->logger->debug('Moving file to ' . $newPath);
             $file->move($newPath);
             $this->logger->debug('File renamed successfully');
         } catch (\Exception $ex) {
-            $this->logger->error('Error renaming file: ' . $ex->getMessage());
+            if($arguments['retryCount'] > 0) {
+                $this->logger->info('Retrying rename job');
+                $this->jobList->add(RenameJob::class, ['id' => $arguments['id'], 'path' => $arguments['path'], 'retryCount' => $arguments['retryCount'] - 1]);
+            } else {
+                $this->logger->error('Error renaming file: ' . $ex->getMessage());
+                $this->logger->info('Max retry count reached, not retrying');
+            }
         }
 
         # After rename OCP\Files\NotFoundException is thrown by /apps/files_versions/lib/Listener/FileEventsListener.php
