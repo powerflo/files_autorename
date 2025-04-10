@@ -16,7 +16,7 @@ Features:
 - Organize files into subfolders dynamically
 - Use placeholders to insert metadata such as the current date, file modification time, or EXIF data in filenames
 	]]></description>
-	<version>1.4.0</version>
+	<version>1.5.0</version>
 	<licence>agpl</licence>
 	<author mail="asdf@walura.eu">powerflo</author>
 	<namespace>Files_AutoRename</namespace>
