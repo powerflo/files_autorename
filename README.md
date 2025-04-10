@@ -33,7 +33,7 @@ A rule can be either:
 
 If the **first pattern** of a rules matches the original file name, **all replacements** in the rule are applied in order. Once a rule matches and is applied, **no further rules are evaluated**.
 
-You can learn more and test your regex patterns at regex101.com.
+You can learn more and test your regex patterns at [regex101.com](regex101.com).
 
 ### Example Rules
 
