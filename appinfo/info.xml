@@ -14,9 +14,9 @@ Features:
 - Define renaming and moving rules with regular expressions
 - Automatically process newly added or moved files
 - Organize files into subfolders dynamically
-- Use placeholders to insert the current date in filenames
+- Use placeholders to insert metadata such as the current date, file modification time, or EXIF data in filenames
 	]]></description>
-	<version>1.3.0</version>
+	<version>1.4.0</version>
 	<licence>agpl</licence>
 	<author mail="asdf@walura.eu">powerflo</author>
 	<namespace>Files_AutoRename</namespace>
