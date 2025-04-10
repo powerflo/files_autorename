@@ -13,6 +13,7 @@ class RenameFileProcessor {
     public const RENAME_FILE_NAME = '.rename.conf';
     public const RULE_DELIMITER = ':';
     public const COMMENT_DELIMITER = '#';
+    private const PATTERN_DELIMITER = '/';
 
     public function __construct(LoggerInterface $logger) {
         $this->logger = $logger;
@@ -36,9 +37,11 @@ class RenameFileProcessor {
         
         $rules = self::parseRules($contents);
         $this->logger->debug('Number of rules in ' . self::RENAME_FILE_NAME . ': ' . count($rules));
+        $this->logger->debug('Rules: ' . print_r($rules, true));
 
         $newName = self::matchRules($rules, $file->getName());
         $newName = self::applyPlaceholders($newName, $file);
+        $this->logger->debug('New name: ' . $newName);
         return $newName;
     }
 
@@ -55,23 +58,68 @@ class RenameFileProcessor {
 
     // Parse the contents of the .rename.conf file and return an array of rules
     private static function parseRules(string $contents): array {
-        $lines = explode("\n", $contents);
         $rules = [];
+        $lines = explode("\n", $contents);
+    
+        $insideGroup = false;
+        $groupPatterns = [];
+        $groupReplacements = [];
+    
         foreach ($lines as $line) {
             $line = trim($line);
-            if ($line === '' || strpos($line, self::RULE_DELIMITER) === false || strpos($line, self::COMMENT_DELIMITER) === 0) {
+    
+            // Skip empty lines and comments
+            if ($line === '' || strpos($line, self::COMMENT_DELIMITER) === 0) {
                 continue;
             }
+    
+            if ($line === '{') {
+                // Start of a grouped rule
+                $insideGroup = true;
+                $groupPatterns = [];
+                $groupReplacements = [];
+                continue;
+            }
+    
+            if ($line === '}') {
+                // End of a grouped rule
+                if (!empty($groupPatterns) && !empty($groupReplacements)) {
+                    $rules[] = [
+                        'patterns'     => $groupPatterns,
+                        'replacements' => $groupReplacements
+                    ];
+                }
+                $insideGroup = false;
+                continue;
+            }
+    
+            // Check if line contains the delimiter
+            if (strpos($line, self::RULE_DELIMITER) === false) {
+                continue;
+            }
+    
             list($pattern, $replacement) = explode(self::RULE_DELIMITER, $line, 2);
             $pattern = trim($pattern);
             $replacement = trim($replacement);
-            if ($pattern !== '' && $replacement !== '') {
+    
+            if ($pattern === '' || $replacement === '') {
+                continue;
+            }
+    
+            // Escape the pattern and wrap it with delimiters
+            $escapedPattern = self::PATTERN_DELIMITER . str_replace(self::PATTERN_DELIMITER, '\\' . self::PATTERN_DELIMITER, $pattern) . self::PATTERN_DELIMITER;
+
+            if ($insideGroup) {
+                $groupPatterns[] = $escapedPattern;
+                $groupReplacements[] = $replacement;
+            } else {
                 $rules[] = [
-                    'pattern'     => $pattern,
-                    'replacement' => $replacement
+                    'patterns'     => [$escapedPattern],
+                    'replacements' => [$replacement]
                 ];
             }
         }
+    
         return $rules;
     }
 
@@ -150,9 +198,8 @@ class RenameFileProcessor {
     // Match the file name against the rules and return the new file name
     private static function matchRules(array $rules, string $fileName): ?string {
         foreach ($rules as $rule) {
-            $pattern = '/' . $rule['pattern'] . '/';
-            if (preg_match($pattern, $fileName)) {
-                return preg_replace($pattern, $rule['replacement'], $fileName);
+            if (preg_match($rule['patterns'][0], $fileName)) {
+                return preg_replace($rule['patterns'], $rule['replacements'], $fileName);
             }
         }
         return null;
