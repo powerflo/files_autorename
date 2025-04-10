@@ -72,7 +72,6 @@ class RenameJob extends QueuedJob {
         
         $parent = $file->getParent();
         $newDirPath = dirname($newName);
-        $newDir = $parent->get($newDirPath);
         
         $this->userSession->setUser($parent->getOwner());
         
@@ -87,6 +86,8 @@ class RenameJob extends QueuedJob {
             $this->logger->debug('Target directory does not exist, creating: ' . $newDirPath);
             $this->createDirectories($parent, $newDirPath);
         }
+
+        $newDir = $parent->get($newDirPath);
         
         // Check permissions to create a file in the target directory
         // It seems like Nextcloud does not check the permissions properly when moving a file
