@@ -33,14 +33,16 @@ A rule can be either:
 
 If the **first pattern** of a rules matches the original file name, **all replacements** in the rule are applied in order. Once a rule matches and is applied, **no further rules are evaluated**.
 
-You can learn more and test your regex patterns at [regex101.com](regex101.com).
+For more information on writing rules, refer to the FAQ section [Writing rules](#writing-rules).
 
 ### Example Rules
 
 ```
-# Rename "Entgeltabrechnung_January_2022 asdf.pdf" to "2022-01_Entgeltabrechnung asdf.pdf":
+# Rename "Entgeltabrechnung_January_2022 asdf.pdf" to "2022-01_Entgeltabrechnung asdf.pdf"
+# The first replacement formats the file name as: "2022-January_Entgeltabrechnung asdf.pdf"
+# Then the subsequent lines convert the month name to its corresponding numerical value.
 {
-^Entgeltabrechnung_(.*)_(\d{4})(.*)\.pdf$:$2-$1_Entgeltabrechnung$3.pdf
+^Entgeltabrechnung_(.+)_(\d{4})(.*)\.pdf$:$2-$1_Entgeltabrechnung$3.pdf
 January:01
 February:02
 March:03
@@ -72,12 +74,46 @@ December:12
 
 # FAQ
 
+- [Table of Contents](#faq)
+    - [How to contribute?](#how-to-contribute)
+- [Writing rules](#writing-rules)
+    - [Need help writing rules?](#need-help-writing-rules)
+    - [How can I test the rules?](#how-can-i-test-the-rules)
+    - [What placeholders can I use in the replacement string?](#what-placeholders-can-i-use-in-the-replacement-string)
+    - [How can I customize the date/time format of the placeholder?](#how-can-i-customize-the-datetime-format-of-the-placeholder)
+    - [Which regex syntax is supported?](#which-regex-syntax-is-supported)
+    - [How can I avoid infinite renaming loops?](#how-can-i-avoid-infinite-renaming-loops)
+- [Configuration file](#configuration-file)
+    - [How do I create a .rename.conf file?](#how-do-i-create-a-renameconf-file)
+    - [Why can’t I see the .rename.conf file in the folder?](#why-cant-i-see-the-renameconf-file-in-the-folder)
+- [Troubleshooting](#troubleshooting)
+    - [Why isn’t AutoRename renaming files on my external storage?](#why-isnt-autorename-renaming-files-on-my-external-storage)
+
+
+
 ### How to contribute?
+
 Contributions are welcome! Feel free to submit issues and pull requests.
 
-### Why isn’t AutoRename renaming files on my external storage?
+## Writing rules
 
-If files are copied directly to the external storage, AutoRename can not trigger the renaming process. Instead, upload files through the Nextcloud web interface, mobile app, or desktop client.
+### Need help writing rules?
+
+Try asking ChatGPT or other AI tools for help with writing rules. Provide a clear example and context, like this:
+
+```
+Use the README https://github.com/powerflo/files_autorename/blob/main/README.md to answer the following request. Only answer if you have access to the README.
+Write a rule to rename the file report_10.10.2010.pdf to 2010-10-10_report.pdf.
+```
+
+If needed, you can also ask the community for additional support.
+
+### How can I test the rules?
+
+Writing regex can be tedious and error-prone. Always test your patterns and replacements on [regex101.com](https://regex101.com) using the **PHP flavor (PCRE2)**.
+
+To test your replacement strings as well, open the **"Substitution"** tab in the left panel. This allows you to simulate how your replacement will behave with your pattern—perfect for catching mistakes before they affect your files.
+
 
 ### What placeholders can I use in the replacement string?
 
@@ -112,6 +148,28 @@ To insert a date or time in a specific format, use the syntax `{placeholder|form
 
 For a full list of formatting options, refer to the official PHP documentation: https://www.php.net/manual/en/datetime.format.php.
 
+### Which regex syntax is supported?
+
+The AutoRename app passes the patterns and replacements defined in `.rename.conf` directly to PHP’s [`preg_replace`](https://www.php.net/manual/en/function.preg-replace.php) function to determine the new file name. This means your regex must follow the **PCRE2 (Perl Compatible Regular Expressions)** syntax.
+
+While regex patterns in PHP code are typically written with delimiters (like `/pattern/`), **patterns in the `.rename.conf` file must be written *without* these delimiters**. Just use the raw pattern, like:
+
+```conf
+^foo_(.*)\.txt$
+```
+
+### How can I avoid infinite renaming loops?
+
+Make sure your rules are designed so that the **new file name does not match the pattern again**, or the renaming will repeat in a loop.
+
+For example, if you want to prepend a timestamp to the filename, make sure to exclude files that already start with a timestamp. Here's a rule that does just that:
+```
+^(?!\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}).*:{date|Y-m-d_H-i-s}_$0
+```
+This rule appends the current date and time (e.g., `2025-04-10_15-30-00_`) to the beginning of the file name—but only if it doesn’t already start with a timestamp in that format.
+
+## Configuration File
+
 ### How do I create a `.rename.conf` file?
 
 1. Open your Nextcloud and navigate to the folder where you want to set up rename rules.  
@@ -129,26 +187,8 @@ To view hidden files in Nextcloud:
 1. Click **Settings** at the bottom left corner of the file browser.
 2. Enable the **“Show hidden files”** option.
 
-### Which regex syntax is supported?
+## Troubleshooting
 
-The AutoRename app passes the patterns and replacements defined in `.rename.conf` directly to PHP’s [`preg_replace`](https://www.php.net/manual/en/function.preg-replace.php) function to determine the new file name. This means your regex must follow the **PCRE2 (Perl Compatible Regular Expressions)** syntax.
+### Why isn’t AutoRename renaming files on my external storage?
 
-While regex patterns in PHP code are typically written with delimiters (like `/pattern/`), **patterns in the `.rename.conf` file must be written *without* these delimiters**. Just use the raw pattern, like:
-
-```conf
-^foo_(.*)\.txt$
-```
-
-### How can I test the rules?
-Writing regex can be tedious and error-prone. Always test your patterns and replacements on [regex101.com](regex101.com) using the **PHP flavor (PCRE2)**.
-
-To test your replacement strings as well, open the **"Substitution"** tab in the left panel. This allows you to simulate how your replacement will behave with your pattern—perfect for catching mistakes before they affect your files.
-
-### How can I fix infinite renaming loops?
-Make sure your rules are designed so that the **new file name does not match the pattern again**, or the renaming will repeat in a loop.
-
-For example, if you want to prepend a timestamp to the filename, make sure to exclude files that already start with a timestamp. Here's a rule that does just that:
-```
-^(?!\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}).*:{date|Y-m-d_H-i-s}_$0
-```
-This rule appends the current date and time (e.g., `2025-04-10_15-30-00_`) to the beginning of the file name—but only if it doesn’t already start with a timestamp in that format.
+If files are copied directly to the external storage, AutoRename can not trigger the renaming process. Instead, upload files through the Nextcloud web interface, mobile app, or desktop client.
