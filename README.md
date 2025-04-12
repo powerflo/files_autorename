@@ -36,13 +36,29 @@ If the **first pattern** of a rules matches the original file name, **all replac
 For more information on writing rules, refer to the FAQ section [Writing rules](#writing-rules).
 
 ### Example Rules
-
 ```
-# Rename "Entgeltabrechnung_January_2022 asdf.pdf" to "2022-01_Entgeltabrechnung asdf.pdf"
-# The first replacement formats the file name as: "2022-January_Entgeltabrechnung asdf.pdf"
-# Then the subsequent lines convert the month name to its corresponding numerical value.
+# Sort PDF invoices by year/month: e.g. rename "Invoice_2025_04.pdf" to "Invoices/2025/04/Invoice_2025_04.pdf"
+^Invoice_(\d{4})_(\d{2})\.pdf$:Invoices/$1/$2/$0
+
+# Fallback: Move other invoice-related PDFs not matched above to "Invoices/Unsorted"
+# The pattern uses (?i) for case-insensitive matching, so it also catches "invoice", "Invoice", "INVOICE", etc.
+(?i)^.*invoice.*\.pdf$:Invoices/Unsorted/$0
+
+# Change date format in filename from dd.mm.yyyy to yyyy-mm-dd, e.g. rename "01.02.2024" to "2024-02-01"
+(\d{2})\.(\d{2})\.(\d{4}):$3-$2-$1
+
+# Rename "report.pdf" to include the current date, e.g. "2025-04-11_report.pdf"
+^(report)(\.pdf)$:{date|Y-m-d}_$1$2
+
+# Prefix photos with EXIF capture date and time, e.g. rename "IMG_1234.jpg" to "25-04-11 15-30-00 IMG_1234.jpg"
+# The pattern only matches, if the filename doesn't already start with a timestamp in that format
+^(?!\d{2}-\d{2}-\d{2}(\s|_)\d{2}-\d{2}-\d{2}).*\.(jpg|JPG|jpeg)$:{photoDateTime|y-m-d H-i-s} $0
+
+# Example to rename "Report_January_2022.pdf" to "2022-01_Report.pdf"
+# The first line reformats the filename to "2022-January_Report.pdf"
+# Then each following line replaces a month name with its numeric equivalent
 {
-^Entgeltabrechnung_(.+)_(\d{4})(.*)\.pdf$:$2-$1_Entgeltabrechnung$3.pdf
+^Report_(\w+)_(\d{4})\.pdf$:$2-$1_Report.pdf
 January:01
 February:02
 March:03
@@ -56,20 +72,6 @@ October:10
 November:11
 December:12
 }
-
-# Move account statements to "Kontoauszüge/YEAR/FILENAME"
-^Kontoauszug.*_(20\d{2})_.*\.pdf$:Kontoauszüge/$1/$0
-
-# Move securities documents to "Wertpapierdokumente/YEAR/FILENAME"
-^Ertragsabrechnung.*\.(20\d{2})_.*\.pdf$:Wertpapierdokumente/$1/$0
-^Depotauszug.*\.(20\d{2})_.*\.pdf$:Wertpapierdokumente/$1/$0
-
-# Change date format in filename from dd.mm.yyyy to yyyy-mm-dd
-(.*)(\d{2})\.(\d{2})\.(20\d{2})(.*):$1$4-$3-$2$5
-
-# Use the current date in the filename. Refer to the FAQ for a complete list of available placeholders.
-# Rename "report.pdf" to "report_2025-02-10.pdf" (assuming today's date is 2025-02-10)
-^(report)(\.pdf)$:$1_{date}$2
 ```
 
 # FAQ
