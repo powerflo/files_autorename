@@ -78,6 +78,9 @@ December:12
 
 - [Table of Contents](#faq)
     - [How to contribute?](#how-to-contribute)
+    - [What happens if a file with the new file name (as a result of a renaming rule) already exists?](#what-happens-if-a-file-with-the-new-file-name-as-a-result-of-a-renaming-rule-already-exists)
+    - [What happens if the target folder for the file (when moving it) does not exist?](#what-happens-if-the-target-folder-for-the-file-when-moving-it-does-not-exist)
+    - [Can folders be renamed or moved?](#can-folders-be-renamed-or-moved)
 - [Writing rules](#writing-rules)
     - [Need help writing rules?](#need-help-writing-rules)
     - [How can I test the rules?](#how-can-i-test-the-rules)
@@ -96,6 +99,18 @@ December:12
 ### How to contribute?
 
 Contributions are welcome! Feel free to submit issues and pull requests.
+
+### What happens if a file with the new file name (as a result of a renaming rule) already exists?
+
+The file will **not be renamed** to avoid overwriting existing files.
+
+### What happens if the target folder for the file (when moving it) does not exist?
+
+The target folder will be **created automatically** to ensure the file can be moved there.
+
+### Can folders be renamed or moved?
+
+No, AutoRename is currently restricted to **files** and does not rename or move folders.
 
 ## Writing rules
 
