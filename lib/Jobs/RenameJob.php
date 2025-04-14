@@ -77,7 +77,7 @@ class RenameJob extends QueuedJob {
         
         // Do not rename if a file with the new name already exists
         if ($parent->nodeExists($newName)) {
-            $this->logger->warning('File with the new name already exists: ' . $newName);
+            $this->logger->warning('File with the new name already exists: ' . $newName . ' - not renaming');
             return;
         }
         
@@ -102,10 +102,11 @@ class RenameJob extends QueuedJob {
             $this->logger->debug('File renamed successfully');
         } catch (\Exception $ex) {
             if($arguments['retryCount'] > 0) {
+                $this->logger->info('Move ' . $file->getName() . ' to ' . $newName . ' failed: ' . $ex->getMessage());
                 $this->logger->info('Retrying rename job');
                 $this->jobList->add(RenameJob::class, ['id' => $arguments['id'], 'path' => $arguments['path'], 'retryCount' => $arguments['retryCount'] - 1]);
             } else {
-                $this->logger->error('Error renaming file: ' . $ex->getMessage());
+                $this->logger->error('Move ' . $file->getName() . ' to ' . $newName . ' failed: ' . $ex->getMessage());
                 $this->logger->info('Max retry count reached, not retrying');
             }
         }
