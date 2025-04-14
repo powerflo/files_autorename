@@ -88,6 +88,8 @@ December:12
     - [How can I customize the date/time format of the placeholder?](#how-can-i-customize-the-datetime-format-of-the-placeholder)
     - [Which regex syntax is supported?](#which-regex-syntax-is-supported)
     - [How can I avoid infinite renaming loops?](#how-can-i-avoid-infinite-renaming-loops)
+    - [How can I use `:` in the pattern and replacement?](#how-can-i-use--in-the-pattern-and-replacement)
+
 - [Configuration file](#configuration-file)
     - [How do I create a .rename.conf file?](#how-do-i-create-a-renameconf-file)
     - [Why can’t I see the .rename.conf file in the folder?](#why-cant-i-see-the-renameconf-file-in-the-folder)
@@ -184,6 +186,21 @@ For example, if you want to prepend a timestamp to the filename, make sure to ex
 ^(?!\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}).*:{date|Y-m-d_H-i-s}_$0
 ```
 This rule appends the current date and time (e.g., `2025-04-10_15-30-00_`) to the beginning of the file name—but only if it doesn’t already start with a timestamp in that format.
+
+### How can I use `:` in the pattern and replacement?
+
+The `:` character is used as a delimiter between the pattern and replacement in the `.rename.conf` file.
+
+If you want to **match a colon** in the file name (i.e., use it in the pattern), you need to **escape it with a backslash**, like so: `\:`.
+
+In the **replacement** part, you can use a literal `:` without escaping.
+
+For example this rule renames `Chapter: 01.txt` to `Chapter_01.txt`.
+
+```
+^Chapter\: (\d+)\.txt$:Chapter_$1.txt
+```
+
 
 ## Configuration File
 

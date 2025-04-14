@@ -57,7 +57,7 @@ class RenameFileProcessor {
     }
 
     // Parse the contents of the .rename.conf file and return an array of rules
-    private static function parseRules(string $contents): array {
+    private function parseRules(string $contents): array {
         $rules = [];
         $lines = explode("\n", $contents);
     
@@ -93,18 +93,17 @@ class RenameFileProcessor {
                 continue;
             }
     
-            // Check if line contains the delimiter
-            if (strpos($line, self::RULE_DELIMITER) === false) {
+            // Split on the first unescaped colon
+            $parts = preg_split('/(?<!\\\\):/', $line, 2);
+
+            if (!isset($parts[0]) || !isset($parts[1])) {
+                $this->logger->warning('Invalid rule format: expected "pattern:replacement". Got: ' . $line);
+                // Skip invalid lines
                 continue;
             }
-    
-            list($pattern, $replacement) = explode(self::RULE_DELIMITER, $line, 2);
-            $pattern = trim($pattern);
-            $replacement = trim($replacement);
-    
-            if ($pattern === '' || $replacement === '') {
-                continue;
-            }
+
+            $pattern = trim($parts[0]);
+            $replacement = trim($parts[1]);
     
             // Escape the pattern and wrap it with delimiters
             $escapedPattern = self::PATTERN_DELIMITER . str_replace(self::PATTERN_DELIMITER, '\\' . self::PATTERN_DELIMITER, $pattern) . self::PATTERN_DELIMITER;
