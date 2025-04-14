@@ -29,7 +29,13 @@ A rule can be either:
 
 - A single `pattern:replacement` pair on one line, or
 
-- A rule with multiple `pattern:replacement` pairs enclosed in curly braces `{}`.
+- A rule with multiple `pattern:replacement` pairs grouped with `{}` like this:
+    ```
+    {
+    pattern1:replacement1
+    pattern2:replacement2
+    }
+    ```
 
 If the **first pattern** of a rules matches the original file name, **all replacements** in the rule are applied in order. Once a rule matches and is applied, **no further rules are evaluated**.
 
