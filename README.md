@@ -100,6 +100,7 @@ December:12
     - [How do I create a .rename.conf file?](#how-do-i-create-a-renameconf-file)
     - [Why can’t I see the .rename.conf file in the folder?](#why-cant-i-see-the-renameconf-file-in-the-folder)
 - [Troubleshooting](#troubleshooting)
+    - [What should I do if a file is not renamed but I expect it to be renamed?](#what-should-i-do-if-a-file-is-not-renamed-but-i-expect-it-to-be-renamed)
     - [Why isn’t AutoRename renaming files on my external storage?](#why-isnt-autorename-renaming-files-on-my-external-storage)
 
 
@@ -229,6 +230,14 @@ To view hidden files in Nextcloud:
 2. Enable the **“Show hidden files”** option.
 
 ## Troubleshooting
+
+### What should I do if a file is not renamed but I expect it to be renamed?
+
+- Please note that the renaming process happens in a background job, so it may take some time to complete. You can check the last run of the background job under **"Administration Settings" > "Basic Settings"** to see if it's in progress or has failed.
+
+- **Test your renaming rules** to ensure they are working as expected. For more information on testing your rules, refer to the ["How can I test the rules?"](##how-can-i-test-the-rules) FAQ entry.
+
+- Check the **Log reader** for any entries related to the AutoRename app. This may help identify any issues or errors that occurred during the renaming process.
 
 ### Why isn’t AutoRename renaming files on my external storage?
 
