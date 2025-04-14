@@ -5,8 +5,8 @@ AutoRename is a Nextcloud app that automatically renames and organizes newly add
 ## How It Works
 
 - Place a `.rename.conf` file in a folder to define renaming rules.
-- If the new name includes subfolders (e.g. `subfolder/new_name`), the file will also be moved.
 - When files are uploaded or moved into that folder, the rules will be applied during the next background job.
+- If the new name includes subfolders (e.g. `subfolder/new_name`), the file will also be moved.
 
 ### Key Features
 
@@ -101,6 +101,8 @@ December:12
     - [Why can’t I see the .rename.conf file in the folder?](#why-cant-i-see-the-renameconf-file-in-the-folder)
 - [Troubleshooting](#troubleshooting)
     - [What should I do if a file is not renamed but I expect it to be renamed?](#what-should-i-do-if-a-file-is-not-renamed-but-i-expect-it-to-be-renamed)
+    - [Will existing files be renamed after I create or update a `.rename.conf` file?](#will-existing-files-be-renamed-after-i-create-or-update-a-renameconf-file)
+
     - [Why isn’t AutoRename renaming files on my external storage?](#why-isnt-autorename-renaming-files-on-my-external-storage)
 
 
@@ -238,6 +240,20 @@ To view hidden files in Nextcloud:
 - **Test your renaming rules** to ensure they are working as expected. For more information on testing your rules, refer to the ["How can I test the rules?"](##how-can-i-test-the-rules) FAQ entry.
 
 - Check the **Log reader** for any entries related to the AutoRename app. This may help identify any issues or errors that occurred during the renaming process.
+
+### Will existing files be renamed after I create or update a `.rename.conf` file?
+
+No — **existing files are not renamed automatically** when a `.rename.conf` file is added or modified.
+
+The AutoRename application is only triggered when:
+
+- A file is **uploaded** into the folder  
+- A file is **moved** into the folder  
+- A file is **renamed** within the folder  
+
+In these cases, AutoRename checks for the presence of a `.rename.conf` file in the target folder and applies matching rules if found.
+
+To apply new rules to existing files, you must manually trigger the renaming by either renaming the files (e.g., adding a character) or moving them out of and back into the folder.
 
 ### Why isn’t AutoRename renaming files on my external storage?
 
