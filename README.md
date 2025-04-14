@@ -102,7 +102,6 @@ December:12
 - [Troubleshooting](#troubleshooting)
     - [What should I do if a file is not renamed but I expect it to be renamed?](#what-should-i-do-if-a-file-is-not-renamed-but-i-expect-it-to-be-renamed)
     - [Will existing files be renamed after I create or update a `.rename.conf` file?](#will-existing-files-be-renamed-after-i-create-or-update-a-renameconf-file)
-
     - [Why isn’t AutoRename renaming files on my external storage?](#why-isnt-autorename-renaming-files-on-my-external-storage)
 
 
