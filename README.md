@@ -139,6 +139,7 @@ Writing regex can be tedious and error-prone. Always test your patterns and repl
 
 To test your replacement strings as well, open the **"Substitution"** tab in the left panel. This allows you to simulate how your replacement will behave with your pattern—perfect for catching mistakes before they affect your files.
 
+**Note:** In regex101, the default delimiter for regex patterns is `/`, which must be escaped if used in the pattern. The AutoRename app automatically handles the escaping of the delimiter for you. If you're testing a pattern with a `/` in regex101, simply change the delimiter to something else (like `#` or `~`) to avoid escape issues.
 
 ### What placeholders can I use in the replacement string?
 
