@@ -58,15 +58,15 @@ class RenameListener implements IEventListener {
         $renameFileProcessor = new RenameFileProcessor($this->logger);
         $newName = $renameFileProcessor->processRenameFile($targetNode);
 
-        if ($newName !== null) {
-            $this->logger->info('Matching rename rule found for ' . $targetNode->getName() . ' - adding RenameJob');
-            try {
-                $this->jobList->add(RenameJob::class, ['id' => $targetNode->getId(), 'path' => $targetNode->getParent()->getPath(), 'retryCount' => 1]);
-            } catch (\Exception $ex) {
-                $this->logger->error('Error adding RenameJob: ' . $ex->getMessage());
-            }
-        } else {
-            $this->logger->debug('No matching rename rule found for ' . $targetNode->getName());
+        if ($newName === null) {
+            return;
+        }
+
+        $this->logger->info('Adding RenameJob for ' . $targetNode->getName());
+        try {
+            $this->jobList->add(RenameJob::class, ['id' => $targetNode->getId(), 'path' => $targetNode->getParent()->getPath(), 'retryCount' => 1]);
+        } catch (\Exception $ex) {
+            $this->logger->error('Error adding RenameJob: ' . $ex->getMessage());
         }
     }
 }

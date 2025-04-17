@@ -11,7 +11,8 @@ AutoRename is a Nextcloud app that automatically renames and organizes newly add
 ### Key Features
 
 ✅ Define powerful renaming and moving rules using regular expressions  
-✅ Use placeholders to insert metadata such as the current date, file modification time, or EXIF data (for photos) in filenames  
+✅ Use placeholders to insert metadata (e.g. current date, file modification time, EXIF data) in filenames  
+✅ Transform (parts of) filenames to uppercase or lowercase
 
 ## Installation
 
@@ -92,6 +93,7 @@ December:12
     - [How can I test the rules?](#how-can-i-test-the-rules)
     - [What placeholders can I use in the replacement string?](#what-placeholders-can-i-use-in-the-replacement-string)
     - [How can I customize the date/time format of the placeholder?](#how-can-i-customize-the-datetime-format-of-the-placeholder)
+    - [How do I rename files with upper/lowercase changes?](#how-do-i-rename-files-with-upperlowercase-changes)
     - [Which regex syntax is supported?](#which-regex-syntax-is-supported)
     - [How can I avoid infinite renaming loops?](#how-can-i-avoid-infinite-renaming-loops)
     - [How can I use `:` in the pattern and replacement?](#how-can-i-use--in-the-pattern-and-replacement)
@@ -175,6 +177,16 @@ To insert a date or time in a specific format, use the syntax `{placeholder|form
 - `s`: Second, two digits (e.g., `00` to `59`)
 
 For a full list of formatting options, refer to the official PHP documentation: https://www.php.net/manual/en/datetime.format.php.
+
+### How do I rename files with upper/lowercase changes?
+
+You can use `upper(...)` and `lower(...)` to transform parts of the replacement string to uppercase or lowercase.
+
+Example rule to rename `file.txt` to `FILE.txt`:
+  
+```
+^(.*)\.txt$:upper($1).txt
+```
 
 ### Which regex syntax is supported?
 

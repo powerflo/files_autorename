@@ -64,11 +64,8 @@ class RenameJob extends QueuedJob {
         $newName = $renameFileProcessor->processRenameFile($file);
 
         if ($newName === null) {
-            $this->logger->debug('No matching rename rule found for ' . $file->getName());
             return;
         }
-
-        $this->logger->info('Matching rename rule found for ' . $file->getName() . ' - renaming to ' . $newName);
         
         $parent = $file->getParent();
         $newDirPath = dirname($newName);

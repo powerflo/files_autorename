@@ -22,8 +22,10 @@ class RenameFileProcessor {
     // If a .rename.conf file is found in the parent folder of the file,
     // apply the rules to the file name and return the new file name
     public function processRenameFile(File $file): ?string {
+        $currentName = $file->getName();
+
         // Don't rename the configuration file itself
-        if ($file->getName() === self::RENAME_FILE_NAME) {
+        if ($currentName === self::RENAME_FILE_NAME) {
             return null;
         }
 
@@ -39,9 +41,21 @@ class RenameFileProcessor {
         $this->logger->debug('Number of rules in ' . self::RENAME_FILE_NAME . ': ' . count($rules));
         $this->logger->debug('Rules: ' . print_r($rules, true));
 
-        $newName = self::matchRules($rules, $file->getName());
-        $newName = self::applyPlaceholders($newName, $file);
-        $this->logger->debug('New name: ' . $newName);
+        $newName = self::matchRules($rules, $currentName);
+
+        if ($newName === null) {
+            $this->logger->debug('No matching rename rule found for ' . $currentName);
+            return null;
+        }        
+
+        $newName = self::applyPlaceholdersAndTransformations($newName, $file);
+        
+        if ($newName === $currentName) {
+            $this->logger->debug('File name is the same, no rename needed for ' . $currentName);
+            return null;
+        }
+        
+        $this->logger->debug('Matching rename rule found for ' . $currentName . ': ' . $newName);
         return $newName;
     }
 
@@ -122,17 +136,22 @@ class RenameFileProcessor {
         return $rules;
     }
 
-    // Replace placeholders in the replacement string
-    private static function applyPlaceholders(string|null $name, File $file): string|null {
-        if ($name === null) {
-            return null;
-        }
-
+    private static function applyPlaceholdersAndTransformations(string $name, File $file): string {    
         $name = self::applyDatePlaceholder($name);
         $name = self::applyFileMTimePlaceholder($name, $file);
         $name = self::applyExifDateTimeOriginalPlaceholder($name, $file);
         $name = self::applyPhotoDateTimePlaceholder($name, $file);
+        $name = self::applyTransformations($name);
         return $name;
+    }
+
+    // Apply transformations like upper() and lower() to parts of the filename
+    private static function applyTransformations(string $name): string {
+        return preg_replace_callback('/(upper|lower)\((.*?)\)/', function ($matches) {
+            return $matches[1] === 'upper'
+                ? strtoupper($matches[2])
+                : strtolower($matches[2]);
+        }, $name);
     }
 
     // Replace {date|format} or {date} placeholders with the current date
