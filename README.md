@@ -101,8 +101,8 @@ December:12
     - [How do I rename files with upper/lowercase changes?](#how-do-i-rename-files-with-upperlowercase-changes)
     - [Which regex syntax is supported?](#which-regex-syntax-is-supported)
     - [How can I avoid infinite renaming loops?](#how-can-i-avoid-infinite-renaming-loops)
-    - [How can I use `:` in the pattern and replacement?](#how-can-i-use--in-the-pattern-and-replacement-1)
-    - [How can I use `/` in the pattern and replacement?](#how-can-i-use--in-the-pattern-and-replacement)
+    - [How can I use `:` in the pattern and replacement?](#how-can-i-use--in-the-pattern-and-replacement)
+    - [How can I use `/` in the pattern and replacement?](#how-can-i-use--in-the-pattern-and-replacement-1)
 
 - [Configuration file](#configuration-file)
     - [How do I create a .rename.conf file?](#how-do-i-create-a-renameconf-file)
