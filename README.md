@@ -1,23 +1,22 @@
 # AutoRename
 
-AutoRename is a Nextcloud app that automatically renames and organizes newly added or moved files based on user-defined rules.
+**AutoRename** is a Nextcloud app that automatically renames and organizes files based on user-defined rules.
 
-## How It Works
+## Overview
 
-- Place a `.rename.conf` file in a folder to define renaming rules.
-- When files are uploaded or moved into that folder, the rules will be applied during the next background job.
-- If the new name includes subfolders (e.g. `subfolder/new_name`), the file will also be moved.
+AutoRename processes files when they are **uploaded**, **moved**, or **renamed** in a folder containing a `.rename.conf` file. Rules in this file use **regular expressions (regex)** to match file names and define how they should be renamed or moved. These rules are applied during the next background job.
 
 ### Key Features
 
-✅ Define powerful renaming and moving rules using regular expressions  
-✅ Use placeholders to insert metadata (e.g. current date, file modification time, EXIF data) in filenames  
-✅ Transform (parts of) filenames to uppercase or lowercase
+- 📝 Define renaming rules using powerful regular expressions.
+- 📂 Move files to subfolders specified in the new name (e.g., subfolder/new_name).
+- 📅 Insert metadata like dates, EXIF data, or file modification times into filenames.
+- 🔄 Transform filenames to uppercase or lowercase.
 
 ## Installation
 
 1. Install [AutoRename via the Nextcloud App Store](https://apps.nextcloud.com/apps/files_autorename) or manually place the app in the `apps-extra/` directory.
-2. Enable the app in the Nextcloud admin panel.
+2. Enable the app in the Nextcloud admin panel under Settings > Apps.
 3. Ensure background jobs (cron) are configured for Nextcloud.
 
 ## Configuration
@@ -38,9 +37,15 @@ A rule can be either:
     }
     ```
 
-If the **first pattern** of a rules matches the original file name, **all replacements** in the rule are applied in order. Once a rule matches and is applied, **no further rules are evaluated**.
+### Behavior
 
-For more information on writing rules, refer to the FAQ section [Writing rules](#writing-rules).
+- If the **first pattern** in a rule matches the original file name, **all replacements** within that rule are applied in order. 
+
+- Once a rule matches and is applied, **no further rules are evaluated** for that file
+
+- If the new name specified by a rule includes a subfolder (e.g., `subfolder/new_name`), the file is moved to that subfolder.
+
+See [Writing rules](#writing-rules) for detailed guidance.
 
 ### Example Rules
 ```
@@ -96,7 +101,8 @@ December:12
     - [How do I rename files with upper/lowercase changes?](#how-do-i-rename-files-with-upperlowercase-changes)
     - [Which regex syntax is supported?](#which-regex-syntax-is-supported)
     - [How can I avoid infinite renaming loops?](#how-can-i-avoid-infinite-renaming-loops)
-    - [How can I use `:` in the pattern and replacement?](#how-can-i-use--in-the-pattern-and-replacement)
+    - [How can I use `:` in the pattern and replacement?](#how-can-i-use--in-the-pattern-and-replacement-1)
+    - [How can I use `/` in the pattern and replacement?](#how-can-i-use--in-the-pattern-and-replacement)
 
 - [Configuration file](#configuration-file)
     - [How do I create a .rename.conf file?](#how-do-i-create-a-renameconf-file)
@@ -141,9 +147,7 @@ If needed, you can also ask the community for additional support.
 
 Writing regex can be tedious and error-prone. Always test your patterns and replacements on [regex101.com](https://regex101.com) using the **PHP flavor (PCRE2)**.
 
-To test your replacement strings as well, open the **"Substitution"** tab in the left panel. This allows you to simulate how your replacement will behave with your pattern—perfect for catching mistakes before they affect your files.
-
-**Note:** In regex101, the default delimiter for regex patterns is `/`, which must be escaped if used in the pattern. The AutoRename app automatically handles the escaping of the delimiter for you. If you're testing a pattern with a `/` in regex101, simply change the delimiter to something else (like `#` or `~`) to avoid escape issues.
+To test replacements, open the **"Substitution"** tab in the left panel—this simulates exactly how your replacement will behave.
 
 ### What placeholders can I use in the replacement string?
 
@@ -222,6 +226,11 @@ For example this rule renames `Chapter: 01.txt` to `Chapter_01.txt`.
 ^Chapter\: (\d+)\.txt$:Chapter_$1.txt
 ```
 
+### How can I use `/` in the pattern and replacement?
+
+Use `/` directly in the pattern and replacement without escaping, as no delimiters are required.
+
+When testing on regex101.com, change the default delimiter from `/` to another character (e.g., `#` or `~`) to include `/` literally without escaping.
 
 ## Configuration File
 
