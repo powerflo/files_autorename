@@ -11,10 +11,10 @@ By placing a `.rename.conf` file in a folder, users can specify regex-based patt
 Renaming is handled by a background job that runs every few minutes, so changes may not be immediate.
 
 Features:
-- Define renaming and moving rules with regular expressions
-- Automatically process newly added or moved files
-- Organize files into subfolders dynamically
-- Use placeholders to insert metadata such as the current date, file modification time, or EXIF data in filenames
+- 📝 Define renaming rules using powerful regular expressions.
+- 📂 Move files to subfolders specified in the new name (e.g., `subfolder/new_name`).
+- 📅 Insert metadata like dates, EXIF data, or file modification times into filenames using placeholders](https://github.com/powerflo/files_autorename/tree/main?tab=readme-ov-file#what-placeholders-can-i-use-in-the-replacement-string).
+- 🔄 Transform filenames to [uppercase or lowercase](https://github.com/powerflo/files_autorename/tree/main?tab=readme-ov-file#how-do-i-rename-files-with-upperlowercase-changes).
 	]]></description>
 	<version>1.7.0</version>
 	<licence>agpl</licence>
