@@ -10,8 +10,8 @@ AutoRename processes files when they are **uploaded**, **moved**, or **renamed**
 
 - 📝 Define renaming rules using powerful regular expressions.
 - 📂 Move files to subfolders specified in the new name (e.g., subfolder/new_name).
-- 📅 Insert metadata like dates, EXIF data, or file modification times into filenames.
-- 🔄 Transform filenames to uppercase or lowercase.
+- 📅 Insert metadata like dates, EXIF data, or file modification times into filenames using [placeholders](#what-placeholders-can-i-use-in-the-replacement-string)
+- 🔄 Transform filenames to [uppercase or lowercase](#how-do-i-rename-files-with-upperlowercase-changes).
 
 ## Installation
 
@@ -21,15 +21,17 @@ AutoRename processes files when they are **uploaded**, **moved**, or **renamed**
 
 ## Configuration
 
-Create a `.rename.conf` file in the desired folder.
+Create a `.rename.conf` file in the desired folder. The file can contain multiple rules, processed in order, but only one rule is applied per file.
 
-Rules are defined using regular expression (regex) patterns to match the original file name, and replacement strings to generate the new file name.
+Rules are defined using regular expression (regex) patterns to match the original file name, and replacement strings to define the new file name.
 
-A rule can be either:
+A rule can be one of the following:
 
-- A single `pattern:replacement` pair on one line, or
+- A **single** `pattern:replacement` pair on one line
 
-- A rule with multiple `pattern:replacement` pairs grouped with `{}` like this:
+  Searches the file name for matches to the pattern and replaces them with replacement.
+
+- A **group** of multiple `pattern:replacement` pairs within `{}`:
     ```
     {
     pattern1:replacement1
@@ -37,13 +39,16 @@ A rule can be either:
     }
     ```
 
+  If the **first pattern** in the group has any match to the original file name, **all pattern:replacement pairs** are applied in order:
+
+  - Each `pattern` is replaced by its corresponding `replacement`.
+  - Each replacement operates on the result of the previous one (not the original file name).
+
 ### Behavior
 
-- If the **first pattern** in a rule matches the original file name, **all replacements** within that rule are applied in order. 
-
 - Once a rule matches and is applied, **no further rules are evaluated** for that file
-
-- If the new name specified by a rule includes a subfolder (e.g., `subfolder/new_name`), the file is moved to that subfolder.
+- If the new name includes a subfolder (e.g., `subfolder/new_name`), the file is moved to that subfolder.
+- If no rule matches, the file name remains unchanged.
 
 See [Writing rules](#writing-rules) for detailed guidance.
 
