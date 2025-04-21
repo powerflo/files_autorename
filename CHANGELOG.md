@@ -2,11 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [1.7.0] - 2025-04-17
+- Added support for case transformation in filenames with new `upper(...)` and `lower(...)` syntax.
 
-## [Unreleased]
+## [1.6.0] - 2025-04-14
+- Improved rule parsing: patterns can now include escaped colons `\:`.
 
-### Added
+## [1.5.0] - 2025-04-10
+- Added support for multiple patterns and replacements within a single rule.
 
-- First release
+## [1.4.0] - 2025-04-10
+- Fixed issue #2.
+- Implemented #3 to add additional placeholders `{photoDateTime}`, `{exifDateTimeOriginal}`, and `{fileModifiedAt}`.
+
+## [1.3.0] - 2025-02-18
+- Excluded the `.rename.conf` configuration file from rename rules.
+
+## [1.2.0] - 2025-02-10
+- Used placeholders to insert the current date in filenames.
+
+## [1.1.0] - 2025-02-09
+- Set user in the background job.
+
+## [1.0.0] - 2025-02-07
+- Initial release.
