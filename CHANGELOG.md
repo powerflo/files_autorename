@@ -26,3 +26,12 @@ All notable changes to this project will be documented in this file.
 
 ## [1.0.0] - 2025-02-07
 - Initial release.
+
+[1.7.0]: https://github.com/powerflo/files_autorename/releases/tag/v1.7.0
+[1.6.0]: https://github.com/powerflo/files_autorename/releases/tag/v1.6.0
+[1.5.0]: https://github.com/powerflo/files_autorename/releases/tag/v1.5.0
+[1.4.0]: https://github.com/powerflo/files_autorename/releases/tag/v1.4.0
+[1.3.0]: https://github.com/powerflo/files_autorename/releases/tag/v1.3.0
+[1.2.0]: https://github.com/powerflo/files_autorename/releases/tag/v1.2.0
+[1.1.0]: https://github.com/powerflo/files_autorename/releases/tag/v1.1.0
+[1.0.0]: https://github.com/powerflo/files_autorename/releases/tag/v1.0.0
