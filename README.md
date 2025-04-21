@@ -10,7 +10,7 @@ AutoRename processes files when they are **uploaded**, **moved**, or **renamed**
 
 - 📝 Define renaming rules using powerful regular expressions.
 - 📂 Move files to subfolders specified in the new name (e.g., subfolder/new_name).
-- 📅 Insert metadata like dates, EXIF data, or file modification times into filenames using [placeholders](#what-placeholders-can-i-use-in-the-replacement-string)
+- 📅 Insert metadata like dates, EXIF data, or file modification times into filenames using [placeholders](#what-placeholders-can-i-use-in-the-replacement-string).
 - 🔄 Transform filenames to [uppercase or lowercase](#how-do-i-rename-files-with-upperlowercase-changes).
 
 ## Installation
