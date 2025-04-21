@@ -262,7 +262,7 @@ To view hidden files in Nextcloud:
 
 - Please note that the renaming process happens in a background job, so it may take some time to complete. You can check the last run of the background job under **"Administration Settings" > "Basic Settings"** to see if it's in progress or has failed.
 
-- **Test your renaming rules** to ensure they are working as expected. For more information on testing your rules, refer to the ["How can I test the rules?"](##how-can-i-test-the-rules) FAQ entry.
+- **Test your renaming rules** to ensure they are working as expected. For more information on testing your rules, refer to the ["How can I test the rules?"](#how-can-i-test-the-rules) FAQ entry.
 
 - Check the **Log reader** for any entries related to the AutoRename app. This may help identify any issues or errors that occurred during the renaming process.
 
