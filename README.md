@@ -9,8 +9,9 @@ AutoRename processes files when they are **uploaded**, **moved**, or **renamed**
 ### Key Features
 
 - 📝 Define renaming rules using powerful regular expressions.
-- 📂 Move files to subfolders specified in the new name (e.g., subfolder/new_name).
+- 📂 Move files to subfolders based on their new name (e.g., subfolder/new_name).
 - 📅 Insert metadata like dates, EXIF data, or file modification times into filenames using [placeholders](#what-placeholders-can-i-use-in-the-replacement-string).
+- 🔍 Extract [text from PDFs](#pdfPatternMatch) for custom filenames.
 - 🔄 Transform filenames to [uppercase or lowercase](#how-do-i-rename-files-with-upperlowercase-changes).
 
 ## Installation
@@ -89,6 +90,14 @@ October:10
 November:11
 December:12
 }
+
+# Use isin and date extracted from Trade Republic security document
+{
+(Wertpapierabrechung|Abrechnungsausführung|Abrechnung)\.pdf:$1_ISIN_DATUM.pdf
+ISIN:{pdfPatternMatch|/ISIN:\s+([A-Z]{2}[A-Z0-9]{9}\d)/|isin_not_found}
+DATUM:{pdfPatternMatch|/DATUM\s+(\d{2}\.\d{2}\.20\d{2})/|date_not_found}
+(\d{2})\.(\d{2})\.(\d{4}):$3-$2-$1
+}
 ```
 
 # FAQ
@@ -160,10 +169,11 @@ You can use the following placeholders to automatically inject metadata into the
 
 | Placeholder            | Description                                                                 |
 |------------------------|-----------------------------------------------------------------------------|
-| `{photoDateTime}`      | Original date/time the photo was taken from EXIF metadata. If that's not available, it falls back to the file modification time. |
-| `{exifDateTimeOriginal}` | Original date/time the photo was taken, extracted from EXIF metadata. Returns an empty string if EXIF data is not available. **Note: The Photos app must be installed for EXIF metadata to be available.** |
-| `{fileModifiedAt}`     | The file's last modified timestamp, from the file system.                   |
-| `{date}`               | The current date and time.                      |
+| `{photoDateTime}` <br> `{photoDateTime\|format}`      | Original date/time the photo was taken from EXIF metadata. If that's not available, it falls back to the file modification time. |
+| `{exifDateTimeOriginal}` <br> `{exifDateTimeOriginal\|format}` | Original date/time the photo was taken, extracted from EXIF metadata. Returns an empty string if EXIF data is not available. **Note: The Photos app must be installed for EXIF metadata to be available.** |
+| `{fileModifiedAt}` <br> `{fileModifiedAt\|format}`     | The file's last modified timestamp, from the file system.                   |
+| `{date}` <br> `{date\|format}`               | The current date and time.                      |
+| <a id="pdfPatternMatch"></a>`{pdfPatternMatch\|/pattern/}` <br> `{pdfPatternMatch\|/pattern/\|fallback}` | Extracts text from the content of a PDF using a regex pattern. If no match is found or an error occurs while parsing the file, the `fallback` (if provided) is used. Useful for filenames based on invoice numbers, dates, or identifiers within PDFs. |
 
 ### How can I customize the date/time format of the placeholder?
 

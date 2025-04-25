@@ -14,6 +14,7 @@ Features:
 - 📝 Define renaming rules using powerful regular expressions.
 - 📂 Move files to subfolders specified in the new name (e.g., `subfolder/new_name`).
 - 📅 Insert metadata like dates, EXIF data, or file modification times into filenames using placeholders](https://github.com/powerflo/files_autorename/tree/main?tab=readme-ov-file#what-placeholders-can-i-use-in-the-replacement-string).
+- 🔍 Extract [text from PDFs](https://github.com/powerflo/files_autorename/tree/main?tab=readme-ov-file#pdfPatternMatch) for custom filenames.
 - 🔄 Transform filenames to [uppercase or lowercase](https://github.com/powerflo/files_autorename/tree/main?tab=readme-ov-file#how-do-i-rename-files-with-upperlowercase-changes).
 	]]></description>
 	<version>1.7.0</version>

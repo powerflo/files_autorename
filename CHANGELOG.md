@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+- New `{pdfPatternMatch|/pattern/|fallback}` placeholder to extract text from the **content of PDF files** using regular expressions.
+
 ## [1.7.0] - 2025-04-17
 - Added support for case transformation in filenames with new `upper(...)` and `lower(...)` syntax.
 

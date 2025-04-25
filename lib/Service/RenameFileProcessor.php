@@ -6,6 +6,7 @@ use OCP\Files\File;
 use OCP\Files\Folder;
 use Psr\Log\LoggerInterface;
 use DateTime;
+use Smalot\PdfParser\Parser;
 
 class RenameFileProcessor {
     private $logger;
@@ -41,14 +42,14 @@ class RenameFileProcessor {
         $this->logger->debug('Number of rules in ' . self::RENAME_FILE_NAME . ': ' . count($rules));
         $this->logger->debug('Rules: ' . print_r($rules, true));
 
-        $newName = self::matchRules($rules, $currentName);
+        $newName = self::matchRules($rules, $currentName, $file);
 
         if ($newName === null) {
             $this->logger->debug('No matching rename rule found for ' . $currentName);
             return null;
         }        
 
-        $newName = self::applyPlaceholdersAndTransformations($newName, $file);
+        $newName = self::applyTransformations($newName, $file);
         
         if ($newName === $currentName) {
             $this->logger->debug('File name is the same, no rename needed for ' . $currentName);
@@ -136,13 +137,19 @@ class RenameFileProcessor {
         return $rules;
     }
 
-    private static function applyPlaceholdersAndTransformations(string $name, File $file): string {    
-        $name = self::applyDatePlaceholder($name);
-        $name = self::applyFileMTimePlaceholder($name, $file);
-        $name = self::applyExifDateTimeOriginalPlaceholder($name, $file);
-        $name = self::applyPhotoDateTimePlaceholder($name, $file);
-        $name = self::applyTransformations($name);
-        return $name;
+    private function applyPlaceholders(array $stringsWithPlaceholders, File $file): array {
+        $resolvedStrings = [];
+    
+        foreach ($stringsWithPlaceholders as $string) {
+            $string = self::applyDatePlaceholder($string);
+            $string = self::applyFileMTimePlaceholder($string, $file);
+            $string = self::applyExifDateTimeOriginalPlaceholder($string, $file);
+            $string = self::applyPhotoDateTimePlaceholder($string, $file);
+            $string = self::applyPdfPatternMatchPlaceholder($string, $file);
+            $resolvedStrings[] = $string;
+        }
+    
+        return $resolvedStrings;
     }
 
     // Apply transformations like upper() and lower() to parts of the filename
@@ -181,7 +188,6 @@ class RenameFileProcessor {
             // The photos app writes the EXIF data to the metadata
             $metadata = $file->getMetadata();
             if (!isset($metadata['photos-exif']['DateTimeOriginal'])) {
-                // TODO: try to generate metadata because it may have not yet been generated
                 return '';
             }
             $exifDateTimeOriginal = $metadata['photos-exif']['DateTimeOriginal'];
@@ -213,11 +219,59 @@ class RenameFileProcessor {
         }, $replacement);
     }
 
+    /**
+     * Replaces placeholders of the form {pdfPatternMatch|/pattern/|fallback} in the filename.
+     *
+     * This function extracts the text content from the PDF file and applies a user-specified regular expression
+     * to search for a match. If a match is found, the first capture group is returned (or the full match if no group is found).
+     * If no match is found, or if an error occurs during PDF parsing, the optional fallback value is used instead.
+     *
+     * Placeholder syntax:
+     *   {pdfPatternMatch|/pattern/} - Returns the matched string or an empty string if no match
+     *   {pdfPatternMatch|/pattern/|fallback} - Returns the matched string or the fallback value if no match or on error
+     *
+     * Notes:
+     * - The delimiter used in the regex pattern is user-defined (e.g., /pattern/, #pattern#, etc.).
+     * - PDF parsing errors (e.g., invalid file contents) are caught, and fallback is returned in those cases.
+     *
+     * @param string $replacement The filename string containing the placeholder
+     * @param File $file The file object, used to read the PDF contents
+     * @return string The filename string with placeholders replaced
+     */
+    private function applyPdfPatternMatchPlaceholder(string $replacement, File $file): string {
+        return preg_replace_callback('/\{pdfPatternMatch\|(.)(.+?)\1(?:\|([^}]*))?}/', function ($matches) use ($file) {
+            $delimiter = $matches[1];
+            $pattern = $delimiter . $matches[2] . $delimiter;
+            $fallback = $matches[3] ?? '';
+            $this->logger->debug('Applying pdfPatternMatch placeholder with pattern: ' . $pattern . ' and fallback: ' . $fallback);
+    
+            $parser = new Parser();
+            try {
+                $pdf = $parser->parseContent($file->getContent());
+                $text = $pdf->getText();
+                $this->logger->debug('Extracted text from ' . $file->getName() . ': ' . substr($text, 0, 1000) . (strlen($text) > 500 ? '...' : ''));
+            } catch (\Exception $e) {
+                $this->logger->error('Error parsing pdf file: ' . $e->getMessage());
+                return $fallback;
+            }
+
+            if (preg_match($pattern, $text, $contentMatches)) {
+                $contentMatch = $contentMatches[1] ?? $contentMatches[0];
+                $this->logger->debug('Pattern match found: ' . $contentMatch);
+                return $contentMatch;
+            } else {
+                $this->logger->debug('No match found for pattern: ' . $pattern);
+                return $fallback;
+            }
+        }, $replacement);
+    }
+
     // Match the file name against the rules and return the new file name
-    private static function matchRules(array $rules, string $fileName): ?string {
+    private function matchRules(array $rules, string $fileName, File $file): ?string {
         foreach ($rules as $rule) {
             if (preg_match($rule['patterns'][0], $fileName)) {
-                return preg_replace($rule['patterns'], $rule['replacements'], $fileName);
+                $resolvedReplacements = self::applyPlaceholders($rule['replacements'], $file);
+                return preg_replace($rule['patterns'], $resolvedReplacements, $fileName);
             }
         }
         return null;

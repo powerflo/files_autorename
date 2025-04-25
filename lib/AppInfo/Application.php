@@ -13,6 +13,8 @@ use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\Events\Node\NodeRenamedEvent;
 use OCP\Files\Events\Node\NodeWrittenEvent;
 
+require_once __DIR__ . '/../../vendor/autoload.php';
+
 class Application extends App implements IBootstrap {
 	public const APP_ID = 'files_autorename';
 
