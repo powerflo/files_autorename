@@ -24,8 +24,8 @@ class Application extends App implements IBootstrap {
 
 		/* @var IEventDispatcher $dispatcher */
 		$dispatcher = $this->getContainer()->get(IEventDispatcher::class);
-		$dispatcher->addServiceListener(NodeRenamedEvent::class, RenameListener::class, -1000000);
-		$dispatcher->addServiceListener(NodeWrittenEvent::class, RenameListener::class, -1000000);
+		$dispatcher->addServiceListener(NodeRenamedEvent::class, RenameListener::class);
+		$dispatcher->addServiceListener(NodeWrittenEvent::class, RenameListener::class);
 	}
 	
 	public function register(IRegistrationContext $context): void {
