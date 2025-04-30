@@ -6,68 +6,98 @@ use OCP\Files\File;
 use OCP\Files\Folder;
 use Psr\Log\LoggerInterface;
 use DateTime;
+use OCP\Files\IRootFolder;
 use Smalot\PdfParser\Parser;
 
 class RenameFileProcessor {
-    private $logger;
-
     public const RENAME_FILE_NAME = '.rename.conf';
+    public const RENAME_USER_FILE_NAME = '.rename.user.conf';
     public const RULE_DELIMITER = ':';
     public const COMMENT_DELIMITER = '#';
     private const PATTERN_DELIMITER = '/';
 
-    public function __construct(LoggerInterface $logger) {
-        $this->logger = $logger;
-    }
+    public function __construct(private LoggerInterface $logger, private IRootFolder $rootFolder) {}
 
-    // If a .rename.conf file is found in the parent folder of the file,
-    // apply the rules to the file name and return the new file name
-    public function processRenameFile(File $file): ?string {
-        $currentName = $file->getName();
-
+    // If a config file is found, apply the rules to the file name and return the new file name
+    public function processRenameFile(File $file): array {
         // Don't rename the configuration file itself
-        if ($currentName === self::RENAME_FILE_NAME) {
-            return null;
+        if (in_array($file->getName(), [self::RENAME_FILE_NAME, self::RENAME_USER_FILE_NAME])) {
+            return [null, null];
         }
 
-        $parent = $file->getParent();
-        try {
-            $contents = $this->readRenameFile($parent);
-        } catch (\OCP\Files\NotFoundException $e) {
-            $this->logger->debug('No ' . self::RENAME_FILE_NAME . ' file found at ' . $parent->getPath() . ': ' . $e->getMessage());
-            return null;
+        [$contents, $baseFolder] = $this->getRenameConfigContents($file);
+        if ($contents === null) {
+            // No rename config file found, return null
+            return [null, null];
         }
         
         $rules = self::parseRules($contents);
-        $this->logger->debug('Number of rules in ' . self::RENAME_FILE_NAME . ': ' . count($rules));
-        $this->logger->debug('Rules: ' . print_r($rules, true));
+
+        $currentName = ltrim($baseFolder->getRelativePath($file->getPath()), '/');
+        $this->logger->debug('Base folder: ' . $baseFolder->getPath() . ' Current name: ' . $currentName, ['path' => $file->getPath()]);
 
         $newName = self::matchRules($rules, $currentName, $file);
 
         if ($newName === null) {
-            $this->logger->debug('No matching rename rule found for ' . $currentName);
-            return null;
-        }        
+            return [null, null];
+        }
 
-        $newName = self::applyTransformations($newName, $file);
+        $newName = self::applyTransformations($newName);
         
         if ($newName === $currentName) {
-            $this->logger->debug('File name is the same, no rename needed for ' . $currentName);
-            return null;
+            $this->logger->debug('File name is the same, no rename needed', ['path' => $file->getPath()]);
+            return [null, null];
         }
         
-        $this->logger->debug('Matching rename rule found for ' . $currentName . ': ' . $newName);
-        return $newName;
+        return [$newName, $baseFolder];
     }
 
-    // Read the contents of the .rename.conf file
-    private function readRenameFile(Folder $parent): ?string {
-        $renameFile = $parent->get(self::RENAME_FILE_NAME);
-        if ($renameFile instanceof File) {
-            return $renameFile->getContent();
-        } else {
-            $this->logger->error('Error reading ' . self::RENAME_FILE_NAME . ' file: ' . $parent->getPath() . ' is not a file');
-            return null;
+    private function getRenameConfigContents(File $file): array {
+        [$contents, $baseFolder] = $this->readLocalRenameFile($file);
+    
+        // Use local rename file if it exists
+        if ($contents !== null) {
+            return [$contents, $baseFolder];
+        }
+    
+        // Otherwise, use the users rename file
+        return $this->readUserRenameFile($file);
+    }
+
+    private function readLocalRenameFile(File $file): array {
+        $baseFolder = $file->getParent();
+        return $this->readRenameFile($baseFolder, self::RENAME_FILE_NAME);
+    }
+
+    private function readUserRenameFile(File $file): array {
+        $parentFolder = $file->getParent();
+    
+        // Only if the file is in the home storage, otherwise we don't know where to look
+        $storageId = $parentFolder->getStorage()->getId();
+        if (!str_starts_with($storageId, 'home::')) {
+            $this->logger->debug('File is not in the home storage, storageId: ' . $storageId, ['path' => $file->getPath()]);
+            return [null, null];
+        }
+    
+        // Look for the rename file in the user folder
+        $owner = $parentFolder->getOwner();
+        $baseFolder = $this->rootFolder->getUserFolder($owner->getUID());
+    
+        return $this->readRenameFile($baseFolder, self::RENAME_USER_FILE_NAME);
+    }
+
+    private function readRenameFile(Folder $baseFolder, string $filename): array {
+        try {
+            $renameFile = $baseFolder->get($filename);
+            if ($renameFile instanceof File) {
+                $this->logger->info('Rename configuration file found', ['path' => $renameFile->getPath()]);                return [$renameFile->getContent(), $baseFolder];
+            } else {
+                $this->logger->warning('Expected rename file but found non-file', ['path' => $renameFile->getPath()]);
+                return [null, null];
+            }
+        } catch (\OCP\Files\NotFoundException $e) {
+            $this->logger->debug('Rename configuration file not found', ['path' => $baseFolder->getPath() . '/' . $filename, 'exception' => $e->getMessage()]);
+            return [null, null];
         }
     }
 
@@ -112,7 +142,7 @@ class RenameFileProcessor {
             $parts = preg_split('/(?<!\\\\):/', $line, 2);
 
             if (!isset($parts[0]) || !isset($parts[1])) {
-                $this->logger->warning('Invalid rule format: expected "pattern:replacement". Got: ' . $line);
+                $this->logger->warning('Invalid rule format: expected "pattern:replacement"', ['line' => $line]);
                 // Skip invalid lines
                 continue;
             }
@@ -133,7 +163,8 @@ class RenameFileProcessor {
                 ];
             }
         }
-    
+
+        $this->logger->debug('Rules parsed', ['count' => count($rules)]);
         return $rules;
     }
 
@@ -194,7 +225,7 @@ class RenameFileProcessor {
 
             // Convert the EXIF dateTimeOriginal format to a DateTime object
             $dateTime = DateTime::createFromFormat('Y:m:d H:i:s', $exifDateTimeOriginal);
-            return $dateTime->format($format);
+            return $dateTime ? $dateTime->format($format) : '';
         }, $replacement);
     }
 
@@ -243,24 +274,24 @@ class RenameFileProcessor {
             $delimiter = $matches[1];
             $pattern = $delimiter . $matches[2] . $delimiter;
             $fallback = $matches[3] ?? '';
-            $this->logger->debug('Applying pdfPatternMatch placeholder with pattern: ' . $pattern . ' and fallback: ' . $fallback);
+            $this->logger->debug('Applying pdfPatternMatch placeholder', ['pattern' => $pattern, 'fallback' => $fallback, 'path' => $file->getPath()]);
     
             $parser = new Parser();
             try {
                 $pdf = $parser->parseContent($file->getContent());
                 $text = $pdf->getText();
-                $this->logger->debug('Extracted text from ' . $file->getName() . ': ' . substr($text, 0, 1000) . (strlen($text) > 500 ? '...' : ''));
+                $this->logger->debug('Extracted text from PDF', ['path' => $file->getPath(), 'text' => substr($text, 0, 1000) . (strlen($text) > 500 ? '...' : '')]);
             } catch (\Exception $e) {
-                $this->logger->error('Error parsing pdf file: ' . $e->getMessage());
+                $this->logger->error('Error parsing PDF file', ['message' => $e->getMessage(), 'path' => $file->getPath()]);
                 return $fallback;
             }
 
             if (preg_match($pattern, $text, $contentMatches)) {
                 $contentMatch = $contentMatches[1] ?? $contentMatches[0];
-                $this->logger->debug('Pattern match found: ' . $contentMatch);
+                $this->logger->debug('PDF pattern match found', ['pattern' => $pattern, 'match' => $contentMatch, 'path' => $file->getPath()]);
                 return $contentMatch;
             } else {
-                $this->logger->debug('No match found for pattern: ' . $pattern);
+                $this->logger->debug('Using fallback due to no match found', ['pattern' => $pattern, 'fallback' => $fallback, 'path' => $file->getPath()]);
                 return $fallback;
             }
         }, $replacement);
@@ -271,9 +302,14 @@ class RenameFileProcessor {
         foreach ($rules as $rule) {
             if (preg_match($rule['patterns'][0], $fileName)) {
                 $resolvedReplacements = self::applyPlaceholders($rule['replacements'], $file);
-                return preg_replace($rule['patterns'], $resolvedReplacements, $fileName);
+                $result = preg_replace($rule['patterns'], $resolvedReplacements, $fileName);
+
+                $this->logger->debug('preg_replace', ['pattern' => $rule['patterns'], 'replacement' => $resolvedReplacements[0], 'subject' => $fileName, 'result' => $result, 'path' => $file->getPath()]);
+                return $result;
             }
         }
+
+        $this->logger->debug('No matching rule found', ['path' => $file->getPath()]);
         return null;
     }
 }

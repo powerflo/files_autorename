@@ -10,40 +10,32 @@ use Psr\Log\LoggerInterface;
 use OCP\Files\Events\Node\NodeRenamedEvent;
 use OCP\Files\Events\Node\NodeWrittenEvent;
 use OCP\Files\File;
+use OCP\Files\IRootFolder;
+use OCP\Files\NotFoundException;
+use OCP\Files\Storage\ISharedStorage;
 
 class RenameListener implements IEventListener {
-    private IJobList $jobList;
-    private LoggerInterface $logger;
-
-    public function __construct(
-        IJobList $jobList,
-        LoggerInterface $logger
-    ){
-        $this->jobList = $jobList;
-        $this->logger = $logger;
-    }
+    public function __construct(private IJobList $jobList, private LoggerInterface $logger, private IRootFolder $rootFolder) {}
 
     public function handle(Event $event): void {
-        $this->logger->debug('RenameListener::handle called');
         if (!($event instanceOf NodeRenamedEvent) && !($event instanceOf NodeWrittenEvent)) {
             return;
         }
-
+        
         if ($event instanceOf NodeWrittenEvent) {
             $targetNode = $event->getNode();
         } else {
             $targetNode = $event->getTarget();
         }
         
-        $this->logger->debug('Target Node: ' . $targetNode->getPath());
-
+        $this->logger->debug('RenameListener handling event', ['event' => get_class($event), 'path' => $targetNode->getPath()]);
+        
         // Only process files, not folders
         if (!($targetNode instanceof File)) {
             return;
         }
 
-        $filePath = $targetNode->getPath();
-        $this->logger->debug('Processing file at path: ' . $filePath);
+        $this->logger->debug('Processing file', ['path' => $targetNode->getPath()]);
 
         if (!$targetNode->isReadable()) {
             // If the file is not readable, i.e. uploaded through a public share link with upload only permissions
@@ -55,18 +47,53 @@ class RenameListener implements IEventListener {
             return;
         }
 
-        $renameFileProcessor = new RenameFileProcessor($this->logger);
-        $newName = $renameFileProcessor->processRenameFile($targetNode);
+        $targetNode = $this->adjustFileForSharedStorage($targetNode);
+
+        $renameFileProcessor = new RenameFileProcessor($this->logger, $this->rootFolder);
+        [$newName] = $renameFileProcessor->processRenameFile($targetNode);
 
         if ($newName === null) {
             return;
         }
 
-        $this->logger->info('Adding RenameJob for ' . $targetNode->getName());
         try {
-            $this->jobList->add(RenameJob::class, ['id' => $targetNode->getId(), 'path' => $targetNode->getParent()->getPath(), 'retryCount' => 1]);
+            $this->logger->info('Adding RenameJob', ['path' => $targetNode->getPath()]);
+            $this->jobList->add(RenameJob::class, [
+                'id' => $targetNode->getId(),
+                'path' => $targetNode->getParent()->getPath(),
+                'retryCount' => 1
+            ]);
         } catch (\Exception $ex) {
-            $this->logger->error('Error adding RenameJob: ' . $ex->getMessage());
+            $this->logger->error('Error adding RenameJob', ['path' => $targetNode->getPath(), 'error' => $ex->getMessage()]);
         }
+    }
+
+    private function adjustFileForSharedStorage(File $file): File {
+        $parentFolder = $file->getParent();
+    
+        try {
+            $storage = $parentFolder->getStorage();
+        } catch (NotFoundException) {
+            return $file;
+        }
+
+        if (!$storage->instanceOfStorage(ISharedStorage::class)) {
+			return $file;
+		}
+
+        /** @var ISharedStorage $storage */
+        $share = $storage->getShare();
+
+        $sharedFile = $share->getNode()->getFirstNodeById($file->getId());
+        
+        if ($sharedFile === null) {
+            // In case a files is moved by a rule into a shared folder getFirstNodeById() returns null
+            // but get() returns the node
+            $sharedFile = $share->getNode()->get($file->getName());
+        }
+            
+        $this->logger->debug('File is in shared storage, using original file ' . $sharedFile->getPath(), ['path' => $file->getPath()]);
+        
+        return $sharedFile;
     }
 }

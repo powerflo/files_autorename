@@ -1,4 +1,5 @@
 <?php
+
 namespace OCA\Files_AutoRename\Jobs;
 
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -12,107 +13,99 @@ use OCP\IUserSession;
 use OCP\FilesMetadata\IFilesMetadataManager;
 use OCP\BackgroundJob\IJobList;
 
-class RenameJob extends QueuedJob {
-    private LoggerInterface $logger;
-    private IRootFolder $rootFolder;
-    private IUserSession $userSession;
-    private IFilesMetadataManager $filesMetadataManager;
-    private IJobList $jobList;
-
+class RenameJob extends QueuedJob
+{
     public function __construct(
-            ITimeFactory $time,
-            LoggerInterface $logger,
-            IRootFolder $rootFolder,
-            IUserSession $userSession,
-            IFilesMetadataManager $filesMetadataManager,
-            IJobList $jobList) {
+        ITimeFactory $time,
+        private LoggerInterface $logger,
+        private IRootFolder $rootFolder,
+        private IUserSession $userSession,
+        private IFilesMetadataManager $filesMetadataManager,
+        private IJobList $jobList
+    ) {
         parent::__construct($time);
-
-        $this->logger = $logger;
-        $this->rootFolder = $rootFolder;
-        $this->userSession = $userSession;
-        $this->filesMetadataManager = $filesMetadataManager;
-        $this->jobList = $jobList;
     }
 
-    protected function run($arguments) {
-        $this->logger->debug("RenameJob running with arguments: " . print_r($arguments, true), ['app' => 'files_autorename']);
+    protected function run($arguments)
+    {
+        $this->logger->debug('RenameJob running', ['arguments' => $arguments]);
 
         if (!isset($arguments['id']) || !isset($arguments['path']) || !isset($arguments['retryCount'])) {
             $this->logger->error('RenameJob: Missing arguments');
             return;
         }
-                
+
         $file = $this->rootFolder->getFirstNodeByIdInPath($arguments['id'], $arguments['path']);
+
+        if ($file === null) {
+            $this->logger->error('File not found', ['fileId' => $arguments['id'], 'path' => $arguments['path']]);
+            return;
+        }
 
         if (!($file instanceof File)) {
             return;
         }
-        
-        if ($file === null) {
-            $this->logger->error('RenameJob: File not found', ['app' => 'files_autorename']);
-            return;
-        }
 
         if (isset($arguments['refreshMetadata'])) {
-            $this->logger->info('Refreshing metadata for ' . $file->getName());
             $metadata = $this->filesMetadataManager->refreshMetadata($file, IFilesMetadataManager::PROCESS_LIVE);
-            $this->logger->debug('File metadata: ' . print_r($metadata, true), ['app' => 'files_autorename']);
+            $this->logger->debug('Metadata refreshed', ['path' => $file->getPath(), 'metadata' => $metadata]);
         }
 
-        $renameFileProcessor = new RenameFileProcessor($this->logger);
-        $newName = $renameFileProcessor->processRenameFile($file);
+        $renameFileProcessor = new RenameFileProcessor($this->logger, $this->rootFolder);
+        [$newName, $baseFolder] = $renameFileProcessor->processRenameFile($file);
 
         if ($newName === null) {
             return;
         }
-        
-        $parent = $file->getParent();
+
         $newDirPath = dirname($newName);
-        
-        $this->userSession->setUser($parent->getOwner());
-        
+
+        $this->userSession->setVolatileActiveUser($baseFolder->getOwner());
+
         // Do not rename if a file with the new name already exists
-        if ($parent->nodeExists($newName)) {
-            $this->logger->warning('File with the new name already exists: ' . $newName . ' - not renaming');
+        if ($baseFolder->nodeExists($newName)) {
+            $this->logger->warning('File with the new name already exists - not renaming', ['newName' => $newName, 'path' => $file->getPath()]);
             return;
         }
-        
+
         // Check if the directory exists, and create it if it doesn't
-        if (!$parent->nodeExists($newDirPath)) {
-            $this->logger->debug('Target directory does not exist, creating: ' . $newDirPath);
-            $this->createDirectories($parent, $newDirPath);
+        if (!$baseFolder->nodeExists($newDirPath)) {
+            $this->logger->debug('Creating target directory', ['newDirPath' => $newDirPath, 'path' => $file->getPath()]);
+            $this->createDirectories($baseFolder, $newDirPath);
         }
 
-        $newDir = $parent->get($newDirPath);
-        
+        $newDir = $baseFolder->get($newDirPath);
+
         // Check permissions to create a file in the target directory
         // It seems like Nextcloud does not check the permissions properly when moving a file
         if ($newDirPath !== '.' && !$newDir->isCreatable()) {
-            throw new \OCP\Files\NotPermittedException('No permission to create file in ' . $newDirPath);
+            $this->logger->warning('Insufficient permissions to move file', ['targetDirectory' => $newDirPath, 'path' => $file->getPath()]);
+            throw new \OCP\Files\NotPermittedException();
         }
 
         try {
-            $newPath = $parent->getPath() . '/' . $newName;
-            $this->logger->debug('Moving file to ' . $newPath);
+            $path = $file->getPath();
+            $newPath = $baseFolder->getPath() . '/' . $newName;
+
             $file->move($newPath);
-            $this->logger->debug('File renamed successfully');
+            $this->logger->debug('File moved successfully', ['from' => $path, 'to' => $newPath]);
         } catch (\Exception $ex) {
-            if($arguments['retryCount'] > 0) {
-                $this->logger->info('Move ' . $file->getName() . ' to ' . $newName . ' failed: ' . $ex->getMessage());
-                $this->logger->info('Retrying rename job');
-                $this->jobList->add(RenameJob::class, ['id' => $arguments['id'], 'path' => $arguments['path'], 'retryCount' => $arguments['retryCount'] - 1]);
+            if ($arguments['retryCount'] > 0) {
+                $this->logger->info('Rename failed, retrying', [ 'to' => $newPath, 'path' => $file->getPath(), 'error' => $ex->getMessage(), 'retriesLeft' => $arguments['retryCount'] - 1]);
+
+                $this->jobList->add(RenameJob::class, [
+                    'id' => $arguments['id'],
+                    'path' => $arguments['path'],
+                    'retryCount' => $arguments['retryCount'] - 1
+                ]);
             } else {
-                $this->logger->error('Move ' . $file->getName() . ' to ' . $newName . ' failed: ' . $ex->getMessage());
-                $this->logger->info('Max retry count reached, not retrying');
+                $this->logger->error('Rename failed', ['to' => $newPath, 'path' => $file->getPath(), 'error' => $ex->getMessage()]);
             }
         }
-
-        # After rename OCP\Files\NotFoundException is thrown by /apps/files_versions/lib/Listener/FileEventsListener.php
-        # But this is a known issue: https://github.com/nextcloud/server/issues/42343
     }
 
-    private function createDirectories(Folder $parent, string $path): void {
+    private function createDirectories(Folder $parent, string $path): void
+    {
         $parts = explode('/', $path);
         foreach ($parts as $part) {
             if ($part === '') {

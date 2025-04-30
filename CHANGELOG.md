@@ -3,6 +3,9 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- Added user-wide renaming rules:   
+You can now define global renaming rules for a user by placing a `.rename.user.conf` file in the user's root directory. These rules apply to full file paths and are used if no folder-specific `.rename.conf` is present.
+
 - New `{pdfPatternMatch|/pattern/|fallback}` placeholder to extract text from the **content of PDF files** using regular expressions.
 
 ## [1.7.0] - 2025-04-17

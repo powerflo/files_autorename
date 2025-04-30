@@ -4,7 +4,7 @@
 
 ## Overview
 
-AutoRename processes files when they are **uploaded**, **moved**, or **renamed** in a folder containing a `.rename.conf` file. Rules in this file use **regular expressions (regex)** to match file names and define how they should be renamed or moved. These rules are applied during the next background job.
+AutoRename processes files when they are **uploaded**, **moved**, or **renamed** in a folder containing a `.rename.conf` file. For user-wide rules, a `.rename.user.conf` can be placed in the user's root folder. Rules use **regular expressions (regex)** to match file names and define how they should be renamed or moved. These rules are applied during the next background job.
 
 ### Key Features
 
@@ -20,16 +20,25 @@ AutoRename processes files when they are **uploaded**, **moved**, or **renamed**
 2. Enable the app in the Nextcloud admin panel under Settings > Apps.
 3. Ensure background jobs (cron) are configured for Nextcloud.
 
+## Quick Start
+
+1. Place a `.rename.conf` file in the desired folder.
+2. Add a rule like this:
+    ```
+    ^Invoice_(\d{4})_(\d{2})\.pdf$:Invoices/$1/$2/$0
+    ```
+3. Upload a matching file (e.g., `Invoice_2025_04.pdf`) — it will be renamed to `Invoices/2025/04/Invoice_2025_04.pdf` during the next background job run.
+
+
 ## Configuration
 
-Create a `.rename.conf` file in the desired folder. The file can contain multiple rules, processed in order, but only one rule is applied per file.
+File renaming is configured using [per-folder](#per-folder-rules-renameconf) `.rename.conf` or [user-wide](#user-wide-rules-renameuserconf) `.rename.user.conf` rules.  See [Writing Rules](#writing-rules) for tips on rule writing and placeholders.
 
-Rules are defined using regular expression (regex) patterns to match the original file name, and replacement strings to define the new file name.
+### Rule Syntax
 
-A rule can be one of the following:
+Rename rules are defined using regular expression (regex) patterns to match file names or paths, and replacement strings to specify the new name or path. Rules can be written as:
 
-- A **single** `pattern:replacement` pair on one line
-
+- A **single** `pattern:replacement` pair on one line.  
   Searches the file name for matches to the pattern and replaces them with replacement.
 
 - A **group** of multiple `pattern:replacement` pairs within `{}`:
@@ -45,15 +54,22 @@ A rule can be one of the following:
   - Each `pattern` is replaced by its corresponding `replacement`.
   - Each replacement operates on the result of the previous one (not the original file name).
 
-### Behavior
+### Rule Behavior
 
-- Once a rule matches and is applied, **no further rules are evaluated** for that file
-- If the new name includes a subfolder (e.g., `subfolder/new_name`), the file is moved to that subfolder.
+This is how rules are processed and applied:
+
+- Rules are evaluated **in the order they appear** in the configuration file.
+- **Only the first matching rule** is applied to each file. After that, no further rules are checked.
+- If the replacement includes a subfolder (e.g., `subfolder/new_name`), the file is moved accordingly.
 - If no rule matches, the file name remains unchanged.
 
-See [Writing rules](#writing-rules) for detailed guidance.
+### Per-Folder Rules: `.rename.conf`
 
-### Example Rules
+Place a `.rename.conf` file in any folder to define rules specific to that folder. These rules:
+- Apply to file names.
+- Can move files to subfolders of the current folder.
+
+#### Example Rules
 ```
 # Sort PDF invoices by year/month: e.g. rename "Invoice_2025_04.pdf" to "Invoices/2025/04/Invoice_2025_04.pdf"
 ^Invoice_(\d{4})_(\d{2})\.pdf$:Invoices/$1/$2/$0
@@ -99,6 +115,28 @@ DATUM:{pdfPatternMatch|/DATUM\s+(\d{2}\.\d{2}\.20\d{2})/|date_not_found}
 (\d{2})\.(\d{2})\.(\d{4}):$3-$2-$1
 }
 ```
+
+### User-Wide Rules: `.rename.user.conf`
+
+For more advanced use cases, place a `.rename.user.conf` file at the root of a user's Nextcloud folder to define rules that apply across folders. These rules:
+
+- Match the **full file path** relative to the Nextcloud folder.
+- Define the **new file path**, allowing files to be moved anywhere within the user's scope.
+- Are used only if no `.rename.conf` exists in the file's folder.
+- Do not apply to external storage or group folders (use `.rename.conf` for those).
+
+#### Example
+
+To organize PDFs uploaded via Nextcloud's file request feature (e.g., `submissions/{studentID}/homework1.pdf`):
+
+```
+^submissions/([^/]+)/(.+\.pdf)$:submissions/$1_$2
+```
+
+This rule:
+
+- Matches PDFs in `submissions/*/` subfolders.
+- Moves them to the `submissions/` folder, prefixing the filename with the subfolder name (e.g., `studentID_homework1.pdf`).
 
 # FAQ
 
