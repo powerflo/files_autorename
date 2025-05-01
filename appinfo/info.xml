@@ -17,7 +17,7 @@ Features:
 - 🔍 Extract [text from PDFs](https://github.com/powerflo/files_autorename/tree/main?tab=readme-ov-file#pdfPatternMatch) for custom filenames.
 - 🔄 Transform filenames to [uppercase or lowercase](https://github.com/powerflo/files_autorename/tree/main?tab=readme-ov-file#how-do-i-rename-files-with-upperlowercase-changes).
 	]]></description>
-	<version>1.7.0</version>
+	<version>2.0.0</version>
 	<licence>agpl</licence>
 	<author mail="asdf@walura.eu">powerflo</author>
 	<namespace>Files_AutoRename</namespace>
