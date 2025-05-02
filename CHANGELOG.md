@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## [2.1.0] - 2025-05-02
 - Added global renaming rules for a group folder. You can now define groupfolder-wide renaming rules by placing a `rename.groupfolder.conf` at the top a a group folder.
 
 ## [2.0.0] - 2025-05-01
@@ -36,6 +36,7 @@ You can now define global renaming rules for a user by placing a `.rename.user.c
 ## [1.0.0] - 2025-02-07
 - Initial release.
 
+[2.1.0]: https://github.com/powerflo/files_autorename/releases/tag/v2.1.0
 [2.0.0]: https://github.com/powerflo/files_autorename/releases/tag/v2.0.0
 [1.7.0]: https://github.com/powerflo/files_autorename/releases/tag/v1.7.0
 [1.6.0]: https://github.com/powerflo/files_autorename/releases/tag/v1.6.0
