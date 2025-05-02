@@ -28,14 +28,14 @@ class RenameListener implements IEventListener {
             $targetNode = $event->getTarget();
         }
         
-        $this->logger->debug('RenameListener handling event', ['event' => get_class($event), 'path' => $targetNode->getPath()]);
+        $this->logger->debug('RenameListener handling ' . get_class($event) . ' event', ['path' => $targetNode->getPath()]);
         
         // Only process files, not folders
         if (!($targetNode instanceof File)) {
             return;
         }
 
-        $this->logger->debug('Processing file', ['path' => $targetNode->getPath()]);
+        $this->logger->debug('Processing file: ' . $targetNode->getPath(), ['path' => $targetNode->getPath()]);
 
         if (!$targetNode->isReadable()) {
             // If the file is not readable, i.e. uploaded through a public share link with upload only permissions
@@ -64,7 +64,7 @@ class RenameListener implements IEventListener {
                 'retryCount' => 1
             ]);
         } catch (\Exception $ex) {
-            $this->logger->error('Error adding RenameJob', ['path' => $targetNode->getPath(), 'error' => $ex->getMessage()]);
+            $this->logger->error('Error adding RenameJob: ' . $ex->getMessage(), ['path' => $targetNode->getPath()]);
         }
     }
 

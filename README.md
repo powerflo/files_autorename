@@ -118,9 +118,9 @@ DATUM:{pdfPatternMatch|/DATUM\s+(\d{2}\.\d{2}\.20\d{2})/|date_not_found}
 
 ### User-Wide Rules: `.rename.user.conf`
 
-For more advanced use cases, place a `.rename.user.conf` file at the root of a user's Nextcloud folder to define rules that apply across folders. These rules:
+For more advanced use cases, place a `.rename.user.conf` file at the root of a user's Nextcloud folder to define rules that apply to **files owned by the user**. These rules:
 
-- Match the **full file path** relative to the Nextcloud folder.
+- Match the **relative file path** inside the user's folder.
 - Define the **new file path**, allowing files to be moved anywhere within the user's scope.
 - Are used only if no `.rename.conf` exists in the file's folder.
 - Do not apply to external storage or group folders (use `.rename.conf` for those).
@@ -137,6 +137,14 @@ This rule:
 
 - Matches PDFs in `submissions/*/` subfolders.
 - Moves them to the `submissions/` folder, prefixing the filename with the subfolder name (e.g., `studentID_homework1.pdf`).
+
+### Groupfolder-Wide rules: `rename.groupfolder.conf`
+
+Define global renaming rules for a **group folder** (also known as **Team folders**) by placing a `rename.groupfolder.conf` file at the top level of a group folder. These rules:
+
+- Match the **relative file path** within the group folder.
+- Define the **new file path**, allowing files to be moved anywhere within the group folder.
+- Are used only if no `.rename.conf` exists in the file's folder.
 
 # FAQ
 
