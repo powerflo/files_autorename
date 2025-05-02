@@ -107,11 +107,12 @@ November:11
 December:12
 }
 
-# Use isin and date extracted from Trade Republic security document
+# Use ISIN, date, and transaction type extracted from a Trade Republic securities document
 {
-(Wertpapierabrechung|Abrechnungsausführung|Abrechnung)\.pdf:$1_ISIN_DATUM.pdf
-ISIN:{pdfPatternMatch|/ISIN:\s+([A-Z]{2}[A-Z0-9]{9}\d)/|isin_not_found}
+^(Wertpapierabrechnung|Abrechnungsausführung|Abrechnung|Vorabpauschale).*\.pdf$:DATUM_ISIN_Abrechnung_TYPE.pdf
+ISIN:{pdfPatternMatch|/([A-Z]{2}[A-Z0-9]{9}\d)\s/|isin_not_found}
 DATUM:{pdfPatternMatch|/DATUM\s+(\d{2}\.\d{2}\.20\d{2})/|date_not_found}
+TYPE:{pdfPatternMatch|/(Kauf|Verkauf|Sparplan|Saveback|Dividende|Vorabpauschale)/|type_not_found}
 (\d{2})\.(\d{2})\.(\d{4}):$3-$2-$1
 }
 ```
