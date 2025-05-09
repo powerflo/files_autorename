@@ -187,19 +187,13 @@ class RenameFileProcessor {
         return $rules;
     }
 
-    private function applyPlaceholders(array $stringsWithPlaceholders, File $file): array {
-        $resolvedStrings = [];
-    
-        foreach ($stringsWithPlaceholders as $string) {
-            $string = self::applyDatePlaceholder($string);
-            $string = self::applyFileMTimePlaceholder($string, $file);
-            $string = self::applyExifDateTimeOriginalPlaceholder($string, $file);
-            $string = self::applyPhotoDateTimePlaceholder($string, $file);
-            $string = self::applyPdfPatternMatchPlaceholder($string, $file);
-            $resolvedStrings[] = $string;
-        }
-    
-        return $resolvedStrings;
+    private function applyPlaceholders(array $replacements, File $file): array {
+        $replacements = self::applyDatePlaceholder($replacements);
+        $replacements = self::applyFileMTimePlaceholder($replacements, $file);
+        $replacements = self::applyExifDateTimeOriginalPlaceholder($replacements, $file);
+        $replacements = self::applyPhotoDateTimePlaceholder($replacements, $file);
+        $replacements = self::applyPdfPatternMatchPlaceholder($replacements, $file);
+        return $replacements;
     }
 
     // Apply transformations like upper() and lower() to parts of the filename
@@ -213,7 +207,7 @@ class RenameFileProcessor {
 
     // Replace {date|format} or {date} placeholders with the current date
     // The format should be a valid date format string for PHP's date() function
-    private static function applyDatePlaceholder(string $replacement): string {
+    private static function applyDatePlaceholder(array $replacement): array {
         return preg_replace_callback('/\{date(?:\|([^}]+))?\}/', function ($matches) {
             $format = $matches[1] ?? 'Y-m-d'; // Use 'Y-m-d' as the default format
             return date($format);
@@ -222,7 +216,7 @@ class RenameFileProcessor {
 
     // Replace {fileModifiedAt|format} or {fileModifiedAt} with the file's last modified time
     // The format should be a valid date format string for PHP's date() function
-    private static function applyFileMTimePlaceholder(string $replacement, File $file): string {
+    private static function applyFileMTimePlaceholder(array $replacement, File $file): array {
         return preg_replace_callback('/\{fileModifiedAt(?:\|([^}]+))?\}/', function ($matches) use ($file) {
             $format = $matches[1] ?? 'Y-m-d'; // Use 'Y-m-d' as the default format
             return date($format, $file->getMTime());
@@ -231,7 +225,7 @@ class RenameFileProcessor {
 
     // Replace {exifDateTimeOriginal|format} or {exifDateTimeOriginal} with the DateTimeOriginal value from EXIF data
     // The format should be a valid date format string for PHP's date() function
-    private static function applyExifDateTimeOriginalPlaceholder(string $replacement, File $file): string {
+    private static function applyExifDateTimeOriginalPlaceholder(array $replacement, File $file): array {
         return preg_replace_callback('/\{exifDateTimeOriginal(?:\|([^}]+))?\}/', function ($matches) use ($file) {
             $format = $matches[1] ?? 'Y-m-d'; // Use 'Y-m-d' as the default format
             
@@ -250,7 +244,7 @@ class RenameFileProcessor {
 
     // Replace {photoDateTime|format} or {photoDateTime} with the DateTimeOriginal value from EXIF data or fallback to the file's last modified time
     // The format should be a valid date format string for PHP's date() function
-    private static function applyPhotoDateTimePlaceholder(string $replacement, File $file): string {
+    private static function applyPhotoDateTimePlaceholder(array $replacement, File $file): array {
         return preg_replace_callback('/\{photoDateTime(?:\|([^}]+))?\}/', function ($matches) use ($file) {
             $format = $matches[1] ?? 'Y-m-d'; // Use 'Y-m-d' as the default format
             
@@ -286,9 +280,9 @@ class RenameFileProcessor {
      *
      * @param string $replacement The filename string containing the placeholder
      * @param File $file The file object, used to read the PDF contents
-     * @return string The filename string with placeholders replaced
+     * @return array The filename string with placeholders replaced
      */
-    private function applyPdfPatternMatchPlaceholder(string $replacement, File $file): string {
+    private function applyPdfPatternMatchPlaceholder(array $replacement, File $file): array {
         return preg_replace_callback('/\{pdfPatternMatch\|(.)(.+?)\1(?:\|([^}]*))?}/', function ($matches) use ($file) {
             $delimiter = $matches[1];
             $pattern = $delimiter . $matches[2] . $delimiter;
