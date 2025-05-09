@@ -323,6 +323,8 @@ To view hidden files in Nextcloud:
 
 - Check the **Log reader** for any entries related to the AutoRename app. This may help identify any issues or errors that occurred during the renaming process.
 
+- If needed, **set the log level to** `debug` in Nextcloud's logging settings to trace the behavior of the AutoRename app more closely.
+
 ### Will existing files be renamed after I create or update a `.rename.conf` file?
 
 No — **existing files are not renamed automatically** when a `.rename.conf` file is added or modified.
