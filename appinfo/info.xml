@@ -16,6 +16,17 @@ Features:
 - 📅 Insert metadata like dates, EXIF data, or file modification times into filenames using [placeholders](https://github.com/powerflo/files_autorename/tree/main?tab=readme-ov-file#what-placeholders-can-i-use-in-the-replacement-string).
 - 🔍 Extract [text from PDFs](https://github.com/powerflo/files_autorename/tree/main?tab=readme-ov-file#pdfPatternMatch) for custom filenames.
 - 🔄 Transform filenames to [uppercase or lowercase](https://github.com/powerflo/files_autorename/tree/main?tab=readme-ov-file#how-do-i-rename-files-with-upperlowercase-changes).
+
+Quick Start
+
+1. Place a `.rename.conf` file in the desired folder.
+2. Add a rule like this:
+    ```
+    ^Invoice_(\d{4})_(\d{2})\.pdf$:Invoices/$1/$2/$0
+    ```
+3. Upload a matching file (e.g., `Invoice_2025_04.pdf`) — it will be renamed to `Invoices/2025/04/Invoice_2025_04.pdf` during the next background job run.
+
+Check out the [full documentation on GitHub](https://github.com/powerflo/files_autorename).
 	]]></description>
 	<version>2.1.0</version>
 	<licence>agpl</licence>
