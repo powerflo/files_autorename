@@ -47,11 +47,6 @@ class RenameFileProcessor {
 
         $newName = self::applyTransformations($newName);
         
-        if ($newName === $currentName) {
-            $this->logger->info('File name is the same, no rename needed', ['path' => $file->getPath()]);
-            return [null, null];
-        }
-        
         $this->logger->info('New name: ' . $newName, ['path' => $file->getPath()]);
         return [$newName, $baseFolder];
     }

@@ -58,9 +58,16 @@ class RenameJob extends QueuedJob
             return;
         }
 
-        $newDirPath = dirname($newName);
-
         $this->userSession->setVolatileActiveUser($baseFolder->getOwner());
+        
+        $filePath = $file->getPath();
+        $newFilePath = $baseFolder->getPath() . '/' . $newName;
+        $newDirname = dirname($newName);
+
+        if ($filePath === $newFilePath) {
+            $this->logger->info('New file name is the same as the old one - not renaming', ['path' => $file->getPath()]);
+            return;
+        }
 
         // Do not rename if a file with the new name already exists
         if ($baseFolder->nodeExists($newName)) {
@@ -69,29 +76,26 @@ class RenameJob extends QueuedJob
         }
 
         // Check if the directory exists, and create it if it doesn't
-        if (!$baseFolder->nodeExists($newDirPath)) {
-            $this->logger->debug('Creating target directory: ' . $newDirPath, ['path' => $file->getPath()]);
-            $this->createDirectories($baseFolder, $newDirPath);
+        if (!$baseFolder->nodeExists($newDirname)) {
+            $this->logger->debug('Creating target directory: ' . $newDirname, ['path' => $file->getPath()]);
+            $this->createDirectories($baseFolder, $newDirname);
         }
 
-        $newDir = $baseFolder->get($newDirPath);
+        $newFolder = $baseFolder->get($newDirname);
 
         // Check permissions to create a file in the target directory
         // It seems like Nextcloud does not check the permissions properly when moving a file
-        if ($newDirPath !== '.' && !$newDir->isCreatable()) {
-            $this->logger->warning('Insufficient permissions to move file to ' . $newDirPath, ['path' => $file->getPath()]);
+        if ($newDirname !== '.' && !$newFolder->isCreatable()) {
+            $this->logger->warning('Insufficient permissions to move file to ' . $newDirname, ['path' => $file->getPath()]);
             throw new \OCP\Files\NotPermittedException();
         }
 
         try {
-            $path = $file->getPath();
-            $newPath = $baseFolder->getPath() . '/' . $newName;
-
-            $file->move($newPath);
-            $this->logger->info('File moved successfully to ' . $newPath, ['path' => $path]);
+            $file->move($newFilePath);
+            $this->logger->info('File moved successfully to ' . $newFilePath, ['path' => $filePath]);
         } catch (\Exception $ex) {
             if ($arguments['retryCount'] > 0) {
-                $this->logger->info('Rename to ' . $newPath . ' failed. Exception: ' . $ex->getMessage() . '. Retrying...', ['path' => $file->getPath(), 'retryCount' => $arguments['retryCount']]);
+                $this->logger->info('Rename to ' . $newFilePath . ' failed. Exception: ' . $ex->getMessage() . '. Retrying...', ['path' => $file->getPath(), 'retryCount' => $arguments['retryCount']]);
 
                 $this->jobList->add(RenameJob::class, [
                     'id' => $arguments['id'],
@@ -99,7 +103,7 @@ class RenameJob extends QueuedJob
                     'retryCount' => $arguments['retryCount'] - 1
                 ]);
             } else {
-                $this->logger->error('Rename to ' . $newPath . ' failed. Exception: ' . $ex->getMessage(), ['path' => $file->getPath()]);
+                $this->logger->error('Rename to ' . $newFilePath . ' failed. Exception: ' . $ex->getMessage(), ['path' => $file->getPath()]);
             }
         }
     }
