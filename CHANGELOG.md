@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## [2.1.1] - 2025-05-19
 - Improved debug logging for exifDateTimeOriginal and photoDateTime placeholders
 
 ## [2.1.0] - 2025-05-02
@@ -39,6 +39,7 @@ You can now define global renaming rules for a user by placing a `.rename.user.c
 ## [1.0.0] - 2025-02-07
 - Initial release.
 
+[2.1.1]: https://github.com/powerflo/files_autorename/releases/tag/v2.1.1
 [2.1.0]: https://github.com/powerflo/files_autorename/releases/tag/v2.1.0
 [2.0.0]: https://github.com/powerflo/files_autorename/releases/tag/v2.0.0
 [1.7.0]: https://github.com/powerflo/files_autorename/releases/tag/v1.7.0
