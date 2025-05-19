@@ -216,8 +216,8 @@ You can use the following placeholders to automatically inject metadata into the
 
 | Placeholder            | Description                                                                 |
 |------------------------|-----------------------------------------------------------------------------|
-| `{photoDateTime}` <br> `{photoDateTime\|format}`      | Original date/time the photo was taken from EXIF metadata. If that's not available, it falls back to the file modification time. |
-| `{exifDateTimeOriginal}` <br> `{exifDateTimeOriginal\|format}` | Original date/time the photo was taken, extracted from EXIF metadata. Returns an empty string if EXIF data is not available. **Note: The Photos app must be installed for EXIF metadata to be available.** |
+| `{photoDateTime}` <br> `{photoDateTime\|format}`      | Original date/time the photo was taken from EXIF metadata. If that's not available, it falls back to the file modification time. <br> *Note: The Photos app must be installed for EXIF metadata to be available.* |
+| `{exifDateTimeOriginal}` <br> `{exifDateTimeOriginal\|format}` | Original date/time the photo was taken, extracted from EXIF metadata. Returns an empty string if EXIF data is not available. <br> *Note: The Photos app must be installed for EXIF metadata to be available.* |
 | `{fileModifiedAt}` <br> `{fileModifiedAt\|format}`     | The file's last modified timestamp, from the file system.                   |
 | `{date}` <br> `{date\|format}`               | The current date and time.                      |
 | <a id="pdfPatternMatch"></a>`{pdfPatternMatch\|/pattern/}` <br> `{pdfPatternMatch\|/pattern/\|fallback}` | Extracts text from the content of a PDF using a regex pattern. If no match is found or an error occurs while parsing the file, the `fallback` (if provided) is used. Useful for filenames based on invoice numbers, dates, or identifiers within PDFs. |

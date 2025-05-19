@@ -36,7 +36,7 @@ class RenameFileProcessor {
         $rules = self::parseRules($contents);
 
         $currentName = ltrim($baseFolder->getRelativePath($file->getPath()), '/');
-        $this->logger->debug('Base folder: ' . $baseFolder->getPath() . ' Current name: ' . $currentName, ['path' => $file->getPath()]);
+        $this->logger->debug('Base folder: ' . $baseFolder->getPath() . ', Current name: ' . $currentName, ['path' => $file->getPath()]);
 
         $newName = self::matchRules($rules, $currentName, $file);
 
@@ -220,42 +220,70 @@ class RenameFileProcessor {
 
     // Replace {exifDateTimeOriginal|format} or {exifDateTimeOriginal} with the DateTimeOriginal value from EXIF data
     // The format should be a valid date format string for PHP's date() function
-    private static function applyExifDateTimeOriginalPlaceholder(array $replacement, File $file): array {
+    private function applyExifDateTimeOriginalPlaceholder(array $replacement, File $file): array {
         return preg_replace_callback('/\{exifDateTimeOriginal(?:\|([^}]+))?\}/', function ($matches) use ($file) {
             $format = $matches[1] ?? 'Y-m-d'; // Use 'Y-m-d' as the default format
-            
-            // The photos app writes the EXIF data to the metadata
+            $fallback = '';
             $metadata = $file->getMetadata();
-            if (!isset($metadata['photos-exif']['DateTimeOriginal'])) {
-                return '';
+            
+            // Use EXIF data from photos app
+            $exif = $metadata['photos-exif'] ?? null;
+            if ($exif === null) {
+                $this->logger->debug('No photos-exif found in metadata. Using fallback: ' . $fallback, ['path' => $file->getPath()]);
+                return $fallback;
             }
-            $exifDateTimeOriginal = $metadata['photos-exif']['DateTimeOriginal'];
 
-            // Convert the EXIF dateTimeOriginal format to a DateTime object
-            $dateTime = DateTime::createFromFormat('Y:m:d H:i:s', $exifDateTimeOriginal);
-            return $dateTime ? $dateTime->format($format) : '';
+            try {
+                $dateTime = self::parseExifDate($exif);
+            } catch (\Exception | \ValueError $e) {
+                $this->logger->debug('Error parsing EXIF date: ' . $e->getMessage() . '. Using fallback: ' . $fallback, ['path' => $file->getPath()]);
+                return $fallback;
+            }
+
+            return $dateTime->format($format);
         }, $replacement);
     }
 
     // Replace {photoDateTime|format} or {photoDateTime} with the DateTimeOriginal value from EXIF data or fallback to the file's last modified time
     // The format should be a valid date format string for PHP's date() function
-    private static function applyPhotoDateTimePlaceholder(array $replacement, File $file): array {
+    private function applyPhotoDateTimePlaceholder(array $replacement, File $file): array {
         return preg_replace_callback('/\{photoDateTime(?:\|([^}]+))?\}/', function ($matches) use ($file) {
             $format = $matches[1] ?? 'Y-m-d'; // Use 'Y-m-d' as the default format
-            
-            // The photos app writes the EXIF data to the metadata
+            $fallback = date($format, $file->getMTime());
             $metadata = $file->getMetadata();
-            if (!isset($metadata['photos-exif']['DateTimeOriginal'])) {
-                // fallback to file modified time
-                return date($format, $file->getMTime());;
-            }
-            $exifDateTimeOriginal = $metadata['photos-exif']['DateTimeOriginal'];
-
-            // Convert the EXIF dateTimeOriginal format to a DateTime object
-            $dateTime = DateTime::createFromFormat('Y:m:d H:i:s', $exifDateTimeOriginal);
             
+            // Use EXIF data from photos app
+            $exif = $metadata['photos-exif'] ?? null;
+            if ($exif === null) {
+                $this->logger->debug('No photos-exif found in metadata. Using fallback: ' . $fallback, ['path' => $file->getPath()]);
+                return $fallback;
+            }
+
+            try {
+                $dateTime = self::parseExifDate($exif);
+            } catch (\Exception | \ValueError $e) {
+                $this->logger->debug('Error parsing EXIF date: ' . $e->getMessage() . '. Using fallback: ' . $fallback, ['path' => $file->getPath()]);
+                return $fallback;
+            }
+
             return $dateTime->format($format);
         }, $replacement);
+    }
+
+    public function parseExifDate(array $exif): \DateTime {
+        $exifDate = $exif['DateTimeOriginal'] ?? null;
+
+        if (null === $exifDate || empty($exifDate) || !\is_string($exifDate)) {
+            throw new \Exception('No date found in exif');
+        }
+
+        $parsedDate = \DateTime::createFromFormat('Y:m:d H:i:s', $exifDate);
+        
+        if (!$parsedDate) {
+            throw new \Exception("Invalid date: {$exifDate}, expected format YYYY:MM:DD HH:MM:SS");
+        }
+
+        return $parsedDate;
     }
 
     /**

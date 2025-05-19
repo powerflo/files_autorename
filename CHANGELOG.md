@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+- Improved debug logging for exifDateTimeOriginal and photoDateTime placeholders
+
 ## [2.1.0] - 2025-05-02
 - Added global renaming rules for a group folder. You can now define groupfolder-wide renaming rules by placing a `rename.groupfolder.conf` at the top a a group folder.
 
