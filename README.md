@@ -317,7 +317,7 @@ To view hidden files in Nextcloud:
 
 ### What should I do if a file is not renamed but I expect it to be renamed?
 
-- Please note that the renaming process happens in a background job, so it may take some time to complete. You can check the last run of the background job under **"Administration Settings" > "Basic Settings"** to see if it's in progress or has failed.
+- The renaming process happens in a background job, so it may take some time to complete. You can check the last run of the background job under **"Administration Settings" > "Basic Settings"**. Make sure background jobs are configured using cron, as the AJAX method is not reliable for this application.
 
 - **Test your renaming rules** to ensure they are working as expected. For more information on testing your rules, refer to the ["How can I test the rules?"](#how-can-i-test-the-rules) FAQ entry.
 
