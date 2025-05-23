@@ -202,7 +202,7 @@ Use the README https://github.com/powerflo/files_autorename/blob/main/README.md 
 Write a rule to rename the file report_10.10.2010.pdf to 2010-10-10_report.pdf.
 ```
 
-If needed, you can also ask the community for additional support.
+If needed, you can also ask [the community](https://help.nextcloud.com) for additional support.
 
 ### How can I test the rules?
 
@@ -331,7 +331,7 @@ No — **existing files are not renamed automatically** when a `.rename.conf` fi
 
 The AutoRename application is only triggered when:
 
-- A file is **uploaded** into the folder  
+- A file is **created** (uploaded or copied) in the folder  
 - A file is **moved** into the folder  
 - A file is **renamed** within the folder  
 
