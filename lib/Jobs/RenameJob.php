@@ -48,7 +48,8 @@ class RenameJob extends QueuedJob
 
         if (isset($arguments['refreshMetadata'])) {
             $metadata = $this->filesMetadataManager->refreshMetadata($file, IFilesMetadataManager::PROCESS_LIVE);
-            $this->logger->debug('Metadata refreshed', ['path' => $file->getPath(), 'metadata' => $metadata]);
+            $this->logger->debug('Metadata refreshed', ['path' => $file->getPath(), 'metadata' => $metadata->asArray()]);
+            $file = $this->rootFolder->getFirstNodeByIdInPath($arguments['id'], $arguments['path']);
         }
 
         $renameFileProcessor = new RenameFileProcessor($this->logger, $this->rootFolder);
