@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.2] - 2025-05-23
+- Updated trigger condition: listen to `NodeCreatedEvent` instead of `NodeWrittenEvent`, avoiding unnecessary listener execution on file modifications.
+
 ## [2.1.1] - 2025-05-19
 - Improved debug logging for exifDateTimeOriginal and photoDateTime placeholders
 
@@ -39,6 +42,7 @@ You can now define global renaming rules for a user by placing a `.rename.user.c
 ## [1.0.0] - 2025-02-07
 - Initial release.
 
+[2.1.2]: https://github.com/powerflo/files_autorename/releases/tag/v2.1.1
 [2.1.1]: https://github.com/powerflo/files_autorename/releases/tag/v2.1.1
 [2.1.0]: https://github.com/powerflo/files_autorename/releases/tag/v2.1.0
 [2.0.0]: https://github.com/powerflo/files_autorename/releases/tag/v2.0.0
