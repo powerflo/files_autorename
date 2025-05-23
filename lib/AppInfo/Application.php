@@ -11,7 +11,7 @@ use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\Events\Node\NodeRenamedEvent;
-use OCP\Files\Events\Node\NodeWrittenEvent;
+use OCP\Files\Events\Node\NodeCreatedEvent;
 
 require_once __DIR__ . '/../../vendor/autoload.php';
 
@@ -25,7 +25,7 @@ class Application extends App implements IBootstrap {
 		/* @var IEventDispatcher $dispatcher */
 		$dispatcher = $this->getContainer()->get(IEventDispatcher::class);
 		$dispatcher->addServiceListener(NodeRenamedEvent::class, RenameListener::class);
-		$dispatcher->addServiceListener(NodeWrittenEvent::class, RenameListener::class);
+		$dispatcher->addServiceListener(NodeCreatedEvent::class, RenameListener::class);
 	}
 	
 	public function register(IRegistrationContext $context): void {

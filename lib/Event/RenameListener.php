@@ -8,7 +8,7 @@ use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use Psr\Log\LoggerInterface;
 use OCP\Files\Events\Node\NodeRenamedEvent;
-use OCP\Files\Events\Node\NodeWrittenEvent;
+use OCP\Files\Events\Node\NodeCreatedEvent;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
@@ -18,11 +18,11 @@ class RenameListener implements IEventListener {
     public function __construct(private IJobList $jobList, private LoggerInterface $logger, private IRootFolder $rootFolder) {}
 
     public function handle(Event $event): void {
-        if (!($event instanceOf NodeRenamedEvent) && !($event instanceOf NodeWrittenEvent)) {
+        if (!($event instanceOf NodeRenamedEvent) && !($event instanceOf NodeCreatedEvent)) {
             return;
         }
         
-        if ($event instanceOf NodeWrittenEvent) {
+        if ($event instanceOf NodeCreatedEvent) {
             $targetNode = $event->getNode();
         } else {
             $targetNode = $event->getTarget();
