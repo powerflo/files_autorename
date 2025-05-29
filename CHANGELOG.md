@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.3] - 2025-05-29
+- Support escape sequences in the replacement string by applying `stripcslashes()`. For example, `"\x20"` in the config file is now correctly interpreted as a space (`" "`).
+
 ## [2.1.2] - 2025-05-23
 - Updated trigger condition: listen to `NodeCreatedEvent` instead of `NodeWrittenEvent`, avoiding unnecessary listener execution on file modifications.
 
@@ -42,7 +45,8 @@ You can now define global renaming rules for a user by placing a `.rename.user.c
 ## [1.0.0] - 2025-02-07
 - Initial release.
 
-[2.1.2]: https://github.com/powerflo/files_autorename/releases/tag/v2.1.1
+[2.1.3]: https://github.com/powerflo/files_autorename/releases/tag/v2.1.3
+[2.1.2]: https://github.com/powerflo/files_autorename/releases/tag/v2.1.2
 [2.1.1]: https://github.com/powerflo/files_autorename/releases/tag/v2.1.1
 [2.1.0]: https://github.com/powerflo/files_autorename/releases/tag/v2.1.0
 [2.0.0]: https://github.com/powerflo/files_autorename/releases/tag/v2.0.0
