@@ -162,7 +162,7 @@ class RenameFileProcessor {
             }
 
             $pattern = trim($parts[0]);
-            $replacement = stripcslashes(trim($parts[1]));
+            $replacement = trim($parts[1]);
     
             // Escape the pattern and wrap it with delimiters
             $escapedPattern = self::PATTERN_DELIMITER . str_replace(self::PATTERN_DELIMITER, '\\' . self::PATTERN_DELIMITER, $pattern) . self::PATTERN_DELIMITER;
@@ -193,6 +193,10 @@ class RenameFileProcessor {
 
     // Apply transformations like upper() and lower() to parts of the filename
     private static function applyTransformations(string $name): string {
+        // unescape, e.g. \x20 -> space
+        $name = stripcslashes($name);
+
+        // upper/lower
         return preg_replace_callback('/(upper|lower)\((.*?)\)/', function ($matches) {
             return $matches[1] === 'upper'
                 ? strtoupper($matches[2])
