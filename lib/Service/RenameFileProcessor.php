@@ -162,7 +162,7 @@ class RenameFileProcessor {
             }
 
             $pattern = trim($parts[0]);
-            $replacement = trim($parts[1]);
+            $replacement = stripcslashes(trim($parts[1]));
     
             // Escape the pattern and wrap it with delimiters
             $escapedPattern = self::PATTERN_DELIMITER . str_replace(self::PATTERN_DELIMITER, '\\' . self::PATTERN_DELIMITER, $pattern) . self::PATTERN_DELIMITER;
