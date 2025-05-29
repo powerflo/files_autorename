@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.4] - 2025-05-29
+- Fixed bug introduced in v2.1.3
+
 ## [2.1.3] - 2025-05-29
 - Support escape sequences in the replacement string by applying `stripcslashes()`. For example, `"\x20"` in the config file is now correctly interpreted as a space (`" "`).
 
@@ -45,6 +48,7 @@ You can now define global renaming rules for a user by placing a `.rename.user.c
 ## [1.0.0] - 2025-02-07
 - Initial release.
 
+[2.1.4]: https://github.com/powerflo/files_autorename/releases/tag/v2.1.4
 [2.1.3]: https://github.com/powerflo/files_autorename/releases/tag/v2.1.3
 [2.1.2]: https://github.com/powerflo/files_autorename/releases/tag/v2.1.2
 [2.1.1]: https://github.com/powerflo/files_autorename/releases/tag/v2.1.1
