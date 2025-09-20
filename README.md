@@ -198,11 +198,11 @@ No, AutoRename is currently restricted to **files** and does not rename or move 
 Try asking ChatGPT or other AI tools for help with writing rules. Provide a clear example and context, like this:
 
 ```
-Use the README https://github.com/powerflo/files_autorename/blob/main/README.md to answer the following request. Only answer if you have access to the README.
+Use the README https://github.com/powerflo/files_autorename to answer the following request. Only answer if you have access to the README.
 Write a rule to rename the file report_10.10.2010.pdf to 2010-10-10_report.pdf.
 ```
 
-If needed, you can also ask [the community](https://help.nextcloud.com) for additional support.
+If needed, you can also ask [the community](https://help.nextcloud.com/tag/autorename-app) for additional support.
 
 ### How can I test the rules?
 
