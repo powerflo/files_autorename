@@ -38,7 +38,7 @@ class RenameFileProcessor {
         $currentName = ltrim($baseFolder->getRelativePath($file->getPath()), '/');
         $this->logger->debug('Base folder: ' . $baseFolder->getPath() . ', Current name: ' . $currentName, ['path' => $file->getPath()]);
 
-        $newName = self::matchRules($rules, $currentName, $file);
+        [$newName, $annotations] = self::matchRules($rules, $currentName, $file);
 
         if ($newName === null) {
             $this->logger->info('No matching rule found for ' . $currentName, ['path' => $file->getPath()]);
@@ -48,7 +48,7 @@ class RenameFileProcessor {
         $newName = self::applyTransformations($newName);
         
         $this->logger->info('New name: ' . $newName, ['path' => $file->getPath()]);
-        return [$newName, $baseFolder];
+        return [$newName, $baseFolder, $annotations];
     }
 
     private function getRenameConfigContents(File $file): array {
@@ -140,12 +140,27 @@ class RenameFileProcessor {
                 continue;
             }
     
-            if ($line === '}') {
+            if (str_starts_with($line, '}')) {
+                if (!$insideGroup) {
+                    $this->logger->warning('Closing "}" found without a matching opening "{"; ignoring.');
+                    continue;
+                }
+
+                // Collect annotations by checking each enum case
+                $annotations = [];
+                foreach (RuleAnnotation::cases() as $case) {
+                    $pattern = '/@' . preg_quote($case->value, '/') . '(?:\s|$)/';
+                    if (preg_match($pattern, $line) === 1) {
+                        $annotations[] = $case;
+                    }
+                }
+
                 // End of a grouped rule
                 if (!empty($groupPatterns) && !empty($groupReplacements)) {
                     $rules[] = [
                         'patterns'     => $groupPatterns,
-                        'replacements' => $groupReplacements
+                        'replacements' => $groupReplacements,
+                        'annotations' => $annotations
                     ];
                 }
                 $insideGroup = false;
@@ -173,7 +188,8 @@ class RenameFileProcessor {
             } else {
                 $rules[] = [
                     'patterns'     => [$escapedPattern],
-                    'replacements' => [$replacement]
+                    'replacements' => [$replacement],
+                    'annotations' => []
                 ];
             }
         }
@@ -338,16 +354,16 @@ class RenameFileProcessor {
     }
 
     // Match the file name against the rules and return the new file name
-    private function matchRules(array $rules, string $fileName, File $file): ?string {
+    private function matchRules(array $rules, string $fileName, File $file): ?array {
         foreach ($rules as $rule) {
             if (preg_match($rule['patterns'][0], $fileName)) {
                 $resolvedReplacements = self::applyPlaceholders($rule['replacements'], $file);
                 $result = preg_replace($rule['patterns'], $resolvedReplacements, $fileName);
 
                 $this->logger->debug('preg_replace', ['pattern' => $rule['patterns'], 'replacement' => $resolvedReplacements[0], 'subject' => $fileName, 'result' => $result, 'path' => $file->getPath()]);
-                return $result;
+                return [$result, $rule['annotations']];
             }
         }
-        return null;
+        return [null, null];
     }
 }

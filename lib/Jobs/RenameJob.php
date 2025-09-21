@@ -7,6 +7,7 @@ use OCP\BackgroundJob\QueuedJob;
 use Psr\Log\LoggerInterface;
 use OCP\Files\IRootFolder;
 use OCA\Files_AutoRename\Service\RenameFileProcessor;
+use OCA\Files_AutoRename\Service\RuleAnnotation;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\IUserSession;
@@ -53,7 +54,7 @@ class RenameJob extends QueuedJob
         }
 
         $renameFileProcessor = new RenameFileProcessor($this->logger, $this->rootFolder);
-        [$newName, $baseFolder] = $renameFileProcessor->processRenameFile($file);
+        [$newName, $baseFolder, $annotations] = $renameFileProcessor->processRenameFile($file);
 
         if ($newName === null) {
             return;
@@ -70,12 +71,6 @@ class RenameJob extends QueuedJob
             return;
         }
 
-        // Do not rename if a file with the new name already exists
-        if ($baseFolder->nodeExists($newName)) {
-            $this->logger->warning('File with the new name ' . $newName . ' already exists - not renaming', ['path' => $file->getPath()]);
-            return;
-        }
-
         // Check if the directory exists, and create it if it doesn't
         if (!$baseFolder->nodeExists($newDirname)) {
             $this->logger->debug('Creating target directory: ' . $newDirname, ['path' => $file->getPath()]);
@@ -89,6 +84,29 @@ class RenameJob extends QueuedJob
         if ($newDirname !== '.' && !$newFolder->isCreatable()) {
             $this->logger->warning('Insufficient permissions to move file to ' . $newDirname, ['path' => $file->getPath()]);
             throw new \OCP\Files\NotPermittedException();
+        }
+        
+        if ($baseFolder->nodeExists($newName)) {
+            // Handle conflicts based on annotations
+            $conflictStragegy = $this->resolveConflictStrategy($annotations);
+            $this->logger->info('Conflict detected for ' . $newName . ' using strategy ' . $conflictStragegy->value, ['path' => $file->getPath()]);
+
+            if ($conflictStragegy === RuleAnnotation::ConflictCancel) {
+                // Handle "cancel" strategy
+                return;
+            } else if ($conflictStragegy === RuleAnnotation::ConflictKeepBoth) {
+                // Handle "keep both" strategy
+                $newName = $newFolder->getNonExistingName($newName);
+                $newFilePath = $baseFolder->getPath() . '/' . $newName;
+            } else if ($conflictStragegy === RuleAnnotation::ConflictKeepBothIfDifferent) {
+                // Handle "keep both if different" strategy
+                $checksumExisting = $baseFolder->get($newName)->hash('sha1');
+                $checksumNew = $file->hash('sha1');
+                if ($checksumExisting !== $checksumNew) {
+                    $newName = $newFolder->getNonExistingName($newName);
+                    $newFilePath = $baseFolder->getPath() . '/' . $newName;
+                }
+            }
         }
 
         try {
@@ -121,5 +139,23 @@ class RenameJob extends QueuedJob
             }
             $parent = $parent->get($part);
         }
+    }
+
+    private function resolveConflictStrategy(array $annotations): RuleAnnotation
+    {
+        $conflictAnnotations = [
+            RuleAnnotation::ConflictCancel,
+            RuleAnnotation::ConflictKeepBoth,
+            RuleAnnotation::ConflictKeepBothIfDifferent,
+        ];
+
+        foreach ($annotations as $annotation) {
+            if (in_array($annotation, $conflictAnnotations, true)) {
+                return $annotation; // first conflict annotation wins
+            }
+        }
+
+        // Fallback if no annotation present
+        return RuleAnnotation::ConflictCancel;
     }
 }

@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+- Added conflict strategy annotations for grouped rules:
+  - `@ConflictKeepBoth` → Keep both files (new file gets a unique name)
+  - `@ConflictKeepBothIfDifferent` → Keep both only if contents differ (skip if identical)
+  - `@ConflictCancel` → Cancel the operation (default if none specified)
+
+These annotations can be placed after the closing `}` of a grouped rule, e.g.:
+```
+{
+    pattern:replacement
+} @ConflictKeepBoth
+```
+
 ## [2.1.4] - 2025-05-29
 - Fixed bug introduced in v2.1.3
 

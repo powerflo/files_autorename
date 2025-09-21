@@ -181,7 +181,19 @@ Contributions are welcome! Feel free to submit issues and pull requests.
 
 ### What happens if a file with the new file name (as a result of a renaming rule) already exists?
 
-The file will **not be renamed** to avoid overwriting existing files.
+By default, the file will **not be renamed** to avoid overwriting existing files. Think about it as renaming in your file explorer: you can’t choose a file name that is already taken.
+
+You can change this behavior by annotating a grouped rule with a conflict strategy:
+- `@ConflictKeepBoth` → Keep both files (the new file gets a unique name)
+- `@ConflictKeepBothIfDifferent` → Keep both only if the contents differ (determined by checksum)
+- `@ConflictCancel` → Cancel operation (default if none specified)
+
+Annotations can only be applied to grouped rules. Place them after the closing `}`:
+```
+{
+pattern:replacement
+} @Annotation
+```
 
 ### What happens if the target folder for the file (when moving it) does not exist?
 
