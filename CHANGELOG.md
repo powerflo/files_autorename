@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.1] - 2025-09-22
+- Bug fix for `@ConflictKeepBoth` and `@ConflictKeepBothIfDifferent` when a file is moved to a subfolder
+
 ## [2.2.0] - 2025-09-22
 - Added conflict strategy annotations for grouped rules:
   - `@ConflictKeepBoth` → Keep both files (new file gets a unique name)
@@ -61,6 +64,7 @@ You can now define global renaming rules for a user by placing a `.rename.user.c
 ## [1.0.0] - 2025-02-07
 - Initial release.
 
+[2.2.1]: https://github.com/powerflo/files_autorename/releases/tag/v2.2.1
 [2.2.0]: https://github.com/powerflo/files_autorename/releases/tag/v2.2.0
 [2.1.4]: https://github.com/powerflo/files_autorename/releases/tag/v2.1.4
 [2.1.3]: https://github.com/powerflo/files_autorename/releases/tag/v2.1.3
