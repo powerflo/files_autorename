@@ -96,14 +96,14 @@ class RenameJob extends QueuedJob
                 return;
             } else if ($conflictStragegy === RuleAnnotation::ConflictKeepBoth) {
                 // Handle "keep both" strategy
-                $newName = $newFolder->getNonExistingName($newName);
+                $newName = $baseFolder->getNonExistingName($newName);
                 $newFilePath = $baseFolder->getPath() . '/' . $newName;
             } else if ($conflictStragegy === RuleAnnotation::ConflictKeepBothIfDifferent) {
                 // Handle "keep both if different" strategy
                 $checksumExisting = $baseFolder->get($newName)->hash('sha1');
                 $checksumNew = $file->hash('sha1');
                 if ($checksumExisting !== $checksumNew) {
-                    $newName = $newFolder->getNonExistingName($newName);
+                    $newName = $baseFolder->getNonExistingName($newName);
                     $newFilePath = $baseFolder->getPath() . '/' . $newName;
                 }
             }
