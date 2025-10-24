@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## [2.2.2] - 2025-10-24
 - Improve RenameJob to postpone renaming until Exif metadata is available, preventing premature renaming when metadata is extracted asynchronously. (Fixes #12)
 
 ## [2.2.1] - 2025-09-22
@@ -67,6 +67,7 @@ You can now define global renaming rules for a user by placing a `.rename.user.c
 ## [1.0.0] - 2025-02-07
 - Initial release.
 
+[2.2.2]: https://github.com/powerflo/files_autorename/releases/tag/v2.2.2
 [2.2.1]: https://github.com/powerflo/files_autorename/releases/tag/v2.2.1
 [2.2.0]: https://github.com/powerflo/files_autorename/releases/tag/v2.2.0
 [2.1.4]: https://github.com/powerflo/files_autorename/releases/tag/v2.1.4
