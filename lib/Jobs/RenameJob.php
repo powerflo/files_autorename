@@ -16,6 +16,8 @@ use OCP\BackgroundJob\IJobList;
 
 class RenameJob extends QueuedJob
 {
+    public const RETRY_COUNT = 1;
+
     public function __construct(
         ITimeFactory $time,
         private LoggerInterface $logger,
@@ -47,16 +49,27 @@ class RenameJob extends QueuedJob
             return;
         }
 
-        if (isset($arguments['refreshMetadata'])) {
-            $metadata = $this->filesMetadataManager->refreshMetadata($file, IFilesMetadataManager::PROCESS_LIVE);
-            $this->logger->debug('Metadata refreshed', ['path' => $file->getPath(), 'metadata' => $metadata->asArray()]);
-            $file = $this->rootFolder->getFirstNodeByIdInPath($arguments['id'], $arguments['path']);
-        }
-
         $renameFileProcessor = new RenameFileProcessor($this->logger, $this->rootFolder);
-        [$newName, $baseFolder, $annotations] = $renameFileProcessor->processRenameFile($file);
-
+        [$newName, $baseFolder, $annotations, $photosExifMissing] = $renameFileProcessor->processRenameFile($file);
+        
         if ($newName === null) {
+            return;
+        }
+        
+        if ($photosExifMissing && !isset($arguments['metadataReady'])) {
+            $this->logger->debug('No EXIF metadata available yet, postponing rename', ['path' => $file->getPath()]);
+            $this->jobList->add(RenameJob::class, [
+                'id' => $arguments['id'],
+                'path' => $arguments['path'],
+                'retryCount' => $arguments['retryCount'],
+                'metadataReady' => true
+            ]);
+
+            if (isset($arguments['refreshMetadata'])) {
+                $metadata = $this->filesMetadataManager->refreshMetadata($file, IFilesMetadataManager::PROCESS_LIVE);
+                $this->logger->debug('Metadata refreshed', ['path' => $file->getPath(), 'metadata' => $metadata->asArray()]);
+            }
+
             return;
         }
 

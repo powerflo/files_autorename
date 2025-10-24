@@ -18,19 +18,23 @@ class RenameFileProcessor {
     public const COMMENT_DELIMITER = '#';
     private const PATTERN_DELIMITER = '/';
 
+    private bool $photosExifMissing = false;
+
     public function __construct(private LoggerInterface $logger, private IRootFolder $rootFolder) {}
 
     // If a config file is found, apply the rules to the file name and return the new file name
     public function processRenameFile(File $file): array {
+        $this->photosExifMissing = false;
+        
         // Don't rename the configuration file itself
         if (in_array($file->getName(), [self::RENAME_FILE_NAME, self::RENAME_USER_FILE_NAME, self::RENAME_GROUP_FILE_NAME])) {
-            return [null, null];
+            return [null, null, null, $this->photosExifMissing];
         }
 
         [$contents, $baseFolder] = $this->getRenameConfigContents($file);
         if ($contents === null) {
             // No rename config file found, return null
-            return [null, null];
+            return [null, null, null, $this->photosExifMissing];
         }
         
         $rules = self::parseRules($contents);
@@ -42,13 +46,13 @@ class RenameFileProcessor {
 
         if ($newName === null) {
             $this->logger->info('No matching rule found for ' . $currentName, ['path' => $file->getPath()]);
-            return [null, null];
+            return [null, null, null, $this->photosExifMissing];
         }
 
         $newName = self::applyTransformations($newName);
         
         $this->logger->info('New name: ' . $newName, ['path' => $file->getPath()]);
-        return [$newName, $baseFolder, $annotations];
+        return [$newName, $baseFolder, $annotations, $this->photosExifMissing];
     }
 
     private function getRenameConfigContents(File $file): array {
@@ -249,6 +253,7 @@ class RenameFileProcessor {
             // Use EXIF data from photos app
             $exif = $metadata['photos-exif'] ?? null;
             if ($exif === null) {
+                $this->photosExifMissing = true;
                 $this->logger->debug('No photos-exif found in metadata. Using fallback: ' . $fallback, ['path' => $file->getPath()]);
                 return $fallback;
             }
@@ -275,6 +280,7 @@ class RenameFileProcessor {
             // Use EXIF data from photos app
             $exif = $metadata['photos-exif'] ?? null;
             if ($exif === null) {
+                $this->photosExifMissing = true;
                 $this->logger->debug('No photos-exif found in metadata. Using fallback: ' . $fallback, ['path' => $file->getPath()]);
                 return $fallback;
             }

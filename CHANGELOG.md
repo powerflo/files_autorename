@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+- Improve RenameJob to postpone renaming until Exif metadata is available, preventing premature renaming when metadata is extracted asynchronously. (Fixes #12)
+
 ## [2.2.1] - 2025-09-22
 - Bug fix for `@ConflictKeepBoth` and `@ConflictKeepBothIfDifferent` when a file is moved to a subfolder
 

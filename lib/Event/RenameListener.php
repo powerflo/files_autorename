@@ -40,10 +40,14 @@ class RenameListener implements IEventListener {
         if (!$targetNode->isReadable()) {
             // If the file is not readable, i.e. uploaded through a public share link with upload only permissions
             // the .readme.conf file cannot be read and we cannot determine if the file should be renamed or not
-            // also the metadata for images could not be refreshed
-            // so we add a RenameJob with the refreshMetadata option
-            $this->logger->info('File is not readable, adding RenameJob with refreshMetadata option');
-            $this->jobList->add(RenameJob::class, ['id' => $targetNode->getId(), 'path' => $targetNode->getParent()->getPath(), 'retryCount' => 1, 'refreshMetadata' => 1]);
+            if ($targetNode->getStorage()->isLocal()) {
+                // Add a RenameJob with the refreshMetadata option because the ExifMetadataProvider fails if the image is not readable
+                $this->logger->info('File is not readable, adding RenameJob with refreshMetadata option');
+                $this->jobList->add(RenameJob::class, ['id' => $targetNode->getId(), 'path' => $targetNode->getParent()->getPath(), 'retryCount' => RenameJob::RETRY_COUNT, 'refreshMetadata' => 1]);
+            } else {
+                $this->logger->info('File is not readable, adding RenameJob');
+                $this->jobList->add(RenameJob::class, ['id' => $targetNode->getId(), 'path' => $targetNode->getParent()->getPath(), 'retryCount' => RenameJob::RETRY_COUNT]);
+            }
             return;
         }
 
@@ -61,7 +65,7 @@ class RenameListener implements IEventListener {
             $this->jobList->add(RenameJob::class, [
                 'id' => $targetNode->getId(),
                 'path' => $targetNode->getParent()->getPath(),
-                'retryCount' => 1
+                'retryCount' => RenameJob::RETRY_COUNT
             ]);
         } catch (\Exception $ex) {
             $this->logger->error('Error adding RenameJob: ' . $ex->getMessage(), ['path' => $targetNode->getPath()]);
