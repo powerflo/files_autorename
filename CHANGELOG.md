@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+- Resolved an issue where `.rename.user.conf` was not found when object storage was configured as the primary storage. (Fixes #13)
+
 ## [2.2.2] - 2025-10-24
 - Improve RenameJob to postpone renaming until Exif metadata is available, preventing premature renaming when metadata is extracted asynchronously. (Fixes #12)
 

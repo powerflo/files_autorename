@@ -100,7 +100,7 @@ class RenameFileProcessor {
 
     private function isInHomeStorage(Node $node): bool {
         $storage = $node->getStorage();
-        return str_starts_with($storage->getId(), 'home::');
+        return str_starts_with($storage->getId(), 'home::') || str_starts_with($storage->getId(), 'object::user:');
     }
 
     private function readRenameFile(Folder $baseFolder, string $filename): string | null {
