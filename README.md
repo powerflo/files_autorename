@@ -288,17 +288,11 @@ This rule appends the current date and time (e.g., `2025-04-10_15-30-00_`) to th
 
 ### How can I use `:` in the pattern and replacement?
 
-The `:` character is used as a delimiter between the pattern and replacement in the `.rename.conf` file.
+The `:` character serves as the delimiter between the pattern and the replacement in rules.
 
-If you want to **match a colon** in the file name (i.e., use it in the pattern), you need to **escape it with a backslash**, like so: `\:`.
+If you want to use a colon in the replacement string, you need to escape it with a backslash, like so: `\:`.
 
-In the **replacement** part, you can use a literal `:` without escaping.
-
-For example this rule renames `Chapter: 01.txt` to `Chapter_01.txt`.
-
-```
-^Chapter\: (\d+)\.txt$:Chapter_$1.txt
-```
+In the regex pattern, you can use a literal `:` without escaping.
 
 ### How can I use `/` in the pattern and replacement?
 

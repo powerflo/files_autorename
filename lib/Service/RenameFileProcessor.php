@@ -170,9 +170,12 @@ class RenameFileProcessor {
                 $insideGroup = false;
                 continue;
             }
-    
-            // Split on the first unescaped colon
-            $parts = preg_split('/(?<!\\\\):/', $line, 2);
+
+            // Split on the last unescaped colon
+            // Regex breakdown:
+            // (?<!\\):  -> Match a colon NOT preceded by a backslash
+            // (?!.*(?<!\\):) -> Negative lookahead: ensure no other unescaped colons follow
+            $parts = preg_split('/(?<!\\\\):(?!.*(?<!\\\\):)/', $line, 2);
 
             if (!isset($parts[0]) || !isset($parts[1])) {
                 $this->logger->warning('Invalid rule format: expected "pattern:replacement" in line: ' . $line);
@@ -185,6 +188,9 @@ class RenameFileProcessor {
     
             // Escape the pattern and wrap it with delimiters
             $escapedPattern = self::PATTERN_DELIMITER . str_replace(self::PATTERN_DELIMITER, '\\' . self::PATTERN_DELIMITER, $pattern) . self::PATTERN_DELIMITER;
+
+            // Unescape any escaped colons in the replacement
+            $replacement = str_replace('\:', ':', $replacement);
 
             if ($insideGroup) {
                 $groupPatterns[] = $escapedPattern;
