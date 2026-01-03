@@ -28,7 +28,7 @@ Quick Start
 
 Check out the [full documentation on GitHub](https://github.com/powerflo/files_autorename).
 	]]></description>
-	<version>2.2.3</version>
+	<version>2.3.0</version>
 	<licence>agpl</licence>
 	<author mail="asdf@walura.eu">powerflo</author>
 	<namespace>Files_AutoRename</namespace>
@@ -41,6 +41,6 @@ Check out the [full documentation on GitHub](https://github.com/powerflo/files_a
 	<bugs>https://github.com/powerflo/files_autorename/issues</bugs>
 	<screenshot>https://raw.githubusercontent.com/powerflo/files_autorename/refs/heads/main/screenshots/screenshot-dot-rename-conf.png</screenshot>
 	<dependencies>
-		<nextcloud min-version="30" max-version="32"/>
+		<nextcloud min-version="30" max-version="33"/>
 	</dependencies>
 </info>
