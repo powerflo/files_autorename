@@ -49,7 +49,7 @@ class RenameJob extends QueuedJob
             return;
         }
 
-        $renameFileProcessor = new RenameFileProcessor($this->logger, $this->rootFolder);
+        $renameFileProcessor = new RenameFileProcessor($this->logger);
         [$newName, $baseFolder, $annotations, $photosExifMissing] = $renameFileProcessor->processRenameFile($file);
         
         if ($newName === null) {

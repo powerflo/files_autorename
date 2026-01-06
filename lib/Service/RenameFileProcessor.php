@@ -6,7 +6,6 @@ use OCP\Files\File;
 use OCP\Files\Folder;
 use Psr\Log\LoggerInterface;
 use DateTime;
-use OCP\Files\IRootFolder;
 use OCP\Files\Node;
 use Smalot\PdfParser\Parser;
 
@@ -14,13 +13,10 @@ class RenameFileProcessor {
     public const RENAME_FILE_NAME = '.rename.conf';
     public const RENAME_USER_FILE_NAME = '.rename.user.conf';
     public const RENAME_GROUP_FILE_NAME = '.rename.groupfolder.conf';
-    public const RULE_DELIMITER = ':';
-    public const COMMENT_DELIMITER = '#';
-    private const PATTERN_DELIMITER = '/';
 
     private bool $photosExifMissing = false;
 
-    public function __construct(private LoggerInterface $logger, private IRootFolder $rootFolder) {}
+    public function __construct(private LoggerInterface $logger) {}
 
     // If a config file is found, apply the rules to the file name and return the new file name
     public function processRenameFile(File $file): array {
@@ -31,13 +27,20 @@ class RenameFileProcessor {
             return [null, null, null, $this->photosExifMissing];
         }
 
-        [$contents, $baseFolder] = $this->getRenameConfigContents($file);
+        [$contents, $baseFolder, $configFilename] = $this->getRenameConfigContents($file);
         if ($contents === null) {
             // No rename config file found, return null
             return [null, null, null, $this->photosExifMissing];
         }
         
-        $rules = self::parseRules($contents);
+        $parser = new RenameRuleParser();
+        try {
+            $rules = $parser->parse($contents);
+            $this->logger->debug(count($rules) . ' rules parsed from ' . $baseFolder->getPath() . '/' . $configFilename, ['path' => $file->getPath()]);
+        } catch (RenameRuleParseException $e) {
+            $this->logger->warning('Failed to parse rules from ' . $baseFolder->getPath() . '/' . $configFilename . ': ' . $e->getMessage(), ['path' => $file->getPath()]);
+            return [null];
+        }
 
         $currentName = ltrim($baseFolder->getRelativePath($file->getPath()), '/');
         $this->logger->debug('Base folder: ' . $baseFolder->getPath() . ', Current name: ' . $currentName, ['path' => $file->getPath()]);
@@ -55,13 +58,13 @@ class RenameFileProcessor {
         return [$newName, $baseFolder, $annotations, $this->photosExifMissing];
     }
 
-    private function getRenameConfigContents(File $file): array {
+    protected function getRenameConfigContents(File $file): array {
         $baseFolder = $file->getParent();
         $contents = $this->readRenameFile($baseFolder, self::RENAME_FILE_NAME);
     
         // Use local rename file if it exists
         if ($contents !== null) {
-            return [$contents, $baseFolder];
+            return [$contents, $baseFolder, self::RENAME_FILE_NAME];
         }
 
         $mountRoot = $this->getMountRoot($file);
@@ -70,19 +73,18 @@ class RenameFileProcessor {
         if ($this->isInHomeStorage($mountRoot)) {
             $this->logger->debug('File is in home storage', ['path' => $file->getPath()]);
             $baseFolder = $mountRoot->get('files');
-            return [$this->readRenameFile($baseFolder, self::RENAME_USER_FILE_NAME), $baseFolder];
+            return [$this->readRenameFile($baseFolder, self::RENAME_USER_FILE_NAME), $baseFolder, self::RENAME_USER_FILE_NAME];
         }
 
         if ($this->isInGroupFolder($mountRoot)) {
             $this->logger->debug('File is in a group folder', ['path' => $file->getPath()]);
             $baseFolder = $mountRoot;
-            return [$this->readRenameFile($baseFolder, self::RENAME_GROUP_FILE_NAME), $baseFolder];
+            return [$this->readRenameFile($baseFolder, self::RENAME_GROUP_FILE_NAME), $baseFolder, self::RENAME_GROUP_FILE_NAME];
         }
 
         $this->logger->debug('No rename file option implemented for the storage at ' . $mountRoot->getPath(), ['path' => $file->getPath()]);
 
-        // Otherwise, use the users rename file
-        return [null, null];
+        return [null, null, null];
     }
 
     private function getMountRoot(Node $node): Folder {
@@ -119,95 +121,6 @@ class RenameFileProcessor {
         }
     }
 
-    // Parse the contents of the .rename.conf file and return an array of rules
-    private function parseRules(string $contents): array {
-        $rules = [];
-        $lines = explode("\n", $contents);
-    
-        $insideGroup = false;
-        $groupPatterns = [];
-        $groupReplacements = [];
-    
-        foreach ($lines as $line) {
-            $line = trim($line);
-    
-            // Skip empty lines and comments
-            if ($line === '' || strpos($line, self::COMMENT_DELIMITER) === 0) {
-                continue;
-            }
-    
-            if ($line === '{') {
-                // Start of a grouped rule
-                $insideGroup = true;
-                $groupPatterns = [];
-                $groupReplacements = [];
-                continue;
-            }
-    
-            if (str_starts_with($line, '}')) {
-                if (!$insideGroup) {
-                    $this->logger->warning('Closing "}" found without a matching opening "{"; ignoring.');
-                    continue;
-                }
-
-                // Collect annotations by checking each enum case
-                $annotations = [];
-                foreach (RuleAnnotation::cases() as $case) {
-                    $pattern = '/@' . preg_quote($case->value, '/') . '(?:\s|$)/';
-                    if (preg_match($pattern, $line) === 1) {
-                        $annotations[] = $case;
-                    }
-                }
-
-                // End of a grouped rule
-                if (!empty($groupPatterns) && !empty($groupReplacements)) {
-                    $rules[] = [
-                        'patterns'     => $groupPatterns,
-                        'replacements' => $groupReplacements,
-                        'annotations' => $annotations
-                    ];
-                }
-                $insideGroup = false;
-                continue;
-            }
-
-            // Split on the last unescaped colon
-            // Regex breakdown:
-            // (?<!\\):  -> Match a colon NOT preceded by a backslash
-            // (?!.*(?<!\\):) -> Negative lookahead: ensure no other unescaped colons follow
-            $parts = preg_split('/(?<!\\\\):(?!.*(?<!\\\\):)/', $line, 2);
-
-            if (!isset($parts[0]) || !isset($parts[1])) {
-                $this->logger->warning('Invalid rule format: expected "pattern:replacement" in line: ' . $line);
-                // Skip invalid lines
-                continue;
-            }
-
-            $pattern = trim($parts[0]);
-            $replacement = trim($parts[1]);
-    
-            // Escape the pattern and wrap it with delimiters
-            $escapedPattern = self::PATTERN_DELIMITER . str_replace(self::PATTERN_DELIMITER, '\\' . self::PATTERN_DELIMITER, $pattern) . self::PATTERN_DELIMITER;
-
-            // Unescape any escaped colons in the replacement
-            $replacement = str_replace('\:', ':', $replacement);
-
-            if ($insideGroup) {
-                $groupPatterns[] = $escapedPattern;
-                $groupReplacements[] = $replacement;
-            } else {
-                $rules[] = [
-                    'patterns'     => [$escapedPattern],
-                    'replacements' => [$replacement],
-                    'annotations' => []
-                ];
-            }
-        }
-
-        $this->logger->debug(count($rules) . ' rules parsed from rename file');
-        return $rules;
-    }
-
     private function applyPlaceholders(array $replacements, File $file): array {
         $replacements = self::applyDatePlaceholder($replacements);
         $replacements = self::applyFileMTimePlaceholder($replacements, $file);
@@ -220,7 +133,6 @@ class RenameFileProcessor {
     // Apply transformations like upper() and lower() to parts of the filename
     private static function applyTransformations(string $name): string {
         // unescape, e.g. \x20 -> space
-        $name = stripcslashes($name);
 
         // upper/lower
         return preg_replace_callback('/(upper|lower)\((.*?)\)/', function ($matches) {
@@ -348,7 +260,7 @@ class RenameFileProcessor {
             try {
                 $pdf = $parser->parseContent($file->getContent());
                 $text = $pdf->getText();
-                $this->logger->debug('Extracted text from PDF: ' . substr($text, 0, 1000) . (strlen($text) > 500 ? '...' : ''), ['path' => $file->getPath()]);
+                $this->logger->debug('Extracted text from PDF: ' . substr($text, 0, 1000) . (strlen($text) > 1000 ? '...' : ''), ['path' => $file->getPath()]);
             } catch (\Exception $e) {
                 $this->logger->error('Error parsing PDF file: ' . $e->getMessage(), ['path' => $file->getPath()]);
                 return $fallback;
