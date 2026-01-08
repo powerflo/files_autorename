@@ -232,7 +232,7 @@ You can use the following placeholders to automatically inject metadata into the
 | `{exifDateTimeOriginal}` <br> `{exifDateTimeOriginal\|format}` | Original date/time the photo was taken, extracted from EXIF metadata. Returns an empty string if EXIF data is not available. <br> *Note: The Photos app must be installed for EXIF metadata to be available.* |
 | `{fileModifiedAt}` <br> `{fileModifiedAt\|format}`     | The file's last modified timestamp, from the file system.                   |
 | `{date}` <br> `{date\|format}`               | The current date and time.                      |
-| <a id="pdfPatternMatch"></a>`{pdfPatternMatch\|/pattern/}` <br> `{pdfPatternMatch\|/pattern/\|fallback}` | Extracts text from the content of a PDF using a regex pattern. If no match is found or an error occurs while parsing the file, the `fallback` (if provided) is used. Useful for filenames based on invoice numbers, dates, or identifiers within PDFs. |
+| <a id="pdfPatternMatch"></a>`{pdfPatternMatch\|/pattern/}` <br> `{pdfPatternMatch\|/pattern/\|fallback}` | Extracts text from the content of a PDF using a regex pattern. Useful for renaming files based on internal data like invoice numbers, dates, or specific identifiers. <br> Returns the **first capturing group** if present; otherwise, returns the **full match**. If no match occurs, the `fallback` is used.<br><br>Example (Group): `{pdfPatternMatch\|/ID: (\d+)/}` → `123`<br>Example (No Group): `{pdfPatternMatch\|/ID: \d+/}` → `ID: 123`|
 
 ### How can I customize the date/time format of the placeholder?
 
