@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.3.1] - 2026-01-08
+- Fixed: Improved rule parsing to ignore colons within `{pdfPatternMatch|...}` placeholders when splitting rules into pattern and replacement components.
+
 ## [2.3.0] - 2026-01-03
 - Change handling for colons in renaming rules: support unescaped colons in patterns and allow escaped colons in replacements.
 
@@ -73,6 +76,7 @@ You can now define global renaming rules for a user by placing a `.rename.user.c
 ## [1.0.0] - 2025-02-07
 - Initial release.
 
+[2.3.1]: https://github.com/powerflo/files_autorename/releases/tag/v2.3.1
 [2.3.0]: https://github.com/powerflo/files_autorename/releases/tag/v2.3.0
 [2.2.3]: https://github.com/powerflo/files_autorename/releases/tag/v2.2.3
 [2.2.2]: https://github.com/powerflo/files_autorename/releases/tag/v2.2.2

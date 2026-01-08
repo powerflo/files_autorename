@@ -51,6 +51,13 @@ class RenameRuleParserTest extends \PHPUnit\Framework\TestCase
         $this->assertSame($expected, $this->parser->parse($contents));
     }
 
+    public function testRuleWithNoReplacement(): void
+    {
+        $contents = 'foo:'; // Only a pattern, empty replacement
+        $expected = [['patterns' => ['/foo/'], 'replacements' => [''], 'annotations' => []]];
+        $this->assertSame($expected, $this->parser->parse($contents));
+    }
+
     public function testRuleWithEscapedColon(): void
     {
         $contents = 'foo:bar:baz\:qux';
@@ -58,6 +65,19 @@ class RenameRuleParserTest extends \PHPUnit\Framework\TestCase
             [
                 'patterns' => ['/foo:bar/'],
                 'replacements' => ['baz:qux'],
+                'annotations' => [],
+            ]
+        ];
+        $this->assertSame($expected, $this->parser->parse($contents));
+    }
+
+    public function testRuleWithPdfPatternMatchAndColon(): void
+    {
+        $contents = 'foo:bar:baz {pdfPatternMatch|/1:2/|default} qux';
+        $expected = [
+            [
+                'patterns' => ['/foo:bar/'],
+                'replacements' => ['baz {pdfPatternMatch|/1:2/|default} qux'],
                 'annotations' => [],
             ]
         ];

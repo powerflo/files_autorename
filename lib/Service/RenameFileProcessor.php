@@ -36,7 +36,8 @@ class RenameFileProcessor {
         $parser = new RenameRuleParser();
         try {
             $rules = $parser->parse($contents);
-            $this->logger->debug(count($rules) . ' rules parsed from ' . $baseFolder->getPath() . '/' . $configFilename, ['path' => $file->getPath()]);
+            // log rules
+            $this->logger->debug(count($rules) . ' rules parsed from ' . $baseFolder->getPath() . '/' . $configFilename . ': ' . print_r($rules, true), ['path' => $file->getPath()]);
         } catch (RenameRuleParseException $e) {
             $this->logger->warning('Failed to parse rules from ' . $baseFolder->getPath() . '/' . $configFilename . ': ' . $e->getMessage(), ['path' => $file->getPath()]);
             return [null];
@@ -132,8 +133,6 @@ class RenameFileProcessor {
 
     // Apply transformations like upper() and lower() to parts of the filename
     private static function applyTransformations(string $name): string {
-        // unescape, e.g. \x20 -> space
-
         // upper/lower
         return preg_replace_callback('/(upper|lower)\((.*?)\)/', function ($matches) {
             return $matches[1] === 'upper'
@@ -284,7 +283,7 @@ class RenameFileProcessor {
                 $resolvedReplacements = self::applyPlaceholders($rule['replacements'], $file);
                 $result = preg_replace($rule['patterns'], $resolvedReplacements, $fileName);
 
-                $this->logger->debug('preg_replace', ['pattern' => $rule['patterns'], 'replacement' => $resolvedReplacements[0], 'subject' => $fileName, 'result' => $result, 'path' => $file->getPath()]);
+                $this->logger->debug('preg_replace', ['pattern' => $rule['patterns'], 'replacement' => $resolvedReplacements, 'subject' => $fileName, 'result' => $result, 'path' => $file->getPath()]);
                 return [$result, $rule['annotations']];
             }
         }

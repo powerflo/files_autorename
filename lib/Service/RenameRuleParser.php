@@ -72,11 +72,14 @@ class RenameRuleParser
                 continue;
             }
 
-            // Split on the last unescaped colon
-            // Regex breakdown:
-            // (?<!\\):  -> Match a colon NOT preceded by a backslash
-            // (?!.*(?<!\\):) -> Negative lookahead: ensure no other unescaped colons follow
-            $parts = preg_split('/(?<!\\\\):(?!.*(?<!\\\\):)/', $line, 2);
+            // Split on the last unescaped colon, ignoring colons inside placeholders as delimiters.
+            // Implementation: Split at the first colon followed only by placeholders, escaped 
+            // characters, or non-colon text until the end of the string.
+            $parts = preg_split(
+                '/(?<!\\\\):(?=(?:\{pdfPatternMatch\|.*?\}|\\\\.|[^:\\\\])*$)/', 
+                $line,
+                2
+            );
 
             if (count($parts) !== 2) {
                 throw new RenameRuleParseException('Invalid rule format at line ' . ($lineNumber + 1) . ': "' . $line . '"');
