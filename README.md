@@ -32,7 +32,7 @@ AutoRename processes files when they are **uploaded**, **moved**, or **renamed**
 
 ## Configuration
 
-File renaming is configured using [per-folder](#per-folder-rules-renameconf) `.rename.conf` or [user-wide](#user-wide-rules-renameuserconf) `.rename.user.conf` rules.  See [Writing Rules](#writing-rules) for tips on rule writing and placeholders.
+File renaming is configured using [per-folder](#per-folder-rules-renameconf) `.rename.conf`, [user-wide](#user-wide-rules-renameuserconf) `.rename.user.conf` or [groupfolder-wide](#groupfolder-wide-rules-renamegroupfolderconf) `.rename.groupfolder.conf` rules.  See [Writing Rules](#writing-rules) for tips on rule writing and placeholders.
 
 ### Rule Syntax
 
@@ -139,9 +139,9 @@ This rule:
 - Matches PDFs in `submissions/*/` subfolders.
 - Moves them to the `submissions/` folder, prefixing the filename with the subfolder name (e.g., `studentID_homework1.pdf`).
 
-### Groupfolder-Wide rules: `rename.groupfolder.conf`
+### Groupfolder-Wide rules: `.rename.groupfolder.conf`
 
-Define global renaming rules for a **group folder** (also known as **Team folders**) by placing a `rename.groupfolder.conf` file at the top level of a group folder. These rules:
+Define global renaming rules for a **group folder** (also known as **Team folders**) by placing a `.rename.groupfolder.conf` file at the top level of a group folder. These rules:
 
 - Match the **relative file path** within the group folder.
 - Define the **new file path**, allowing files to be moved anywhere within the group folder.
