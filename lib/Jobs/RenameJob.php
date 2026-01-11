@@ -13,6 +13,7 @@ use OCP\Files\Folder;
 use OCP\IUserSession;
 use OCP\FilesMetadata\IFilesMetadataManager;
 use OCP\BackgroundJob\IJobList;
+use OCP\IConfig;
 
 class RenameJob extends QueuedJob
 {
@@ -24,7 +25,8 @@ class RenameJob extends QueuedJob
         private IRootFolder $rootFolder,
         private IUserSession $userSession,
         private IFilesMetadataManager $filesMetadataManager,
-        private IJobList $jobList
+        private IJobList $jobList,
+        private IConfig $config
     ) {
         parent::__construct($time);
     }
@@ -49,7 +51,7 @@ class RenameJob extends QueuedJob
             return;
         }
 
-        $renameFileProcessor = new RenameFileProcessor($this->logger);
+        $renameFileProcessor = new RenameFileProcessor($this->logger, $this->config);
         [$newName, $baseFolder, $annotations, $photosExifMissing] = $renameFileProcessor->processRenameFile($file);
         
         if ($newName === null) {

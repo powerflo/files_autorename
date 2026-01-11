@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+- Fixed: The placeholders {fileModifiedAt} and {photoDateTime} (when no EXIF date is available) now use the user's timezone instad of UTC.
+
 ## [2.3.1] - 2026-01-08
 - Fixed: Improved rule parsing to ignore colons within `{pdfPatternMatch|...}` placeholders when splitting rules into pattern and replacement components.
 

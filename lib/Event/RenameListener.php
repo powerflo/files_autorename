@@ -12,9 +12,10 @@ use OCP\Files\Events\Node\NodeCreatedEvent;
 use OCP\Files\File;
 use OCP\Files\NotFoundException;
 use OCP\Files\Storage\ISharedStorage;
+use OCP\IConfig;
 
 class RenameListener implements IEventListener {
-    public function __construct(private IJobList $jobList, private LoggerInterface $logger) {}
+    public function __construct(private IJobList $jobList, private LoggerInterface $logger, private IConfig $config) {}
 
     public function handle(Event $event): void {
         if (!($event instanceOf NodeRenamedEvent) && !($event instanceOf NodeCreatedEvent)) {
@@ -52,7 +53,7 @@ class RenameListener implements IEventListener {
 
         $targetNode = $this->adjustFileForSharedStorage($targetNode);
 
-        $renameFileProcessor = new RenameFileProcessor($this->logger);
+        $renameFileProcessor = new RenameFileProcessor($this->logger, $this->config);
         [$newName] = $renameFileProcessor->processRenameFile($targetNode);
 
         if ($newName === null) {

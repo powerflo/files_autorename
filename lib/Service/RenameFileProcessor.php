@@ -7,6 +7,7 @@ use OCP\Files\Folder;
 use Psr\Log\LoggerInterface;
 use DateTime;
 use OCP\Files\Node;
+use OCP\IConfig;
 use Smalot\PdfParser\Parser;
 
 class RenameFileProcessor {
@@ -16,7 +17,7 @@ class RenameFileProcessor {
 
     private bool $photosExifMissing = false;
 
-    public function __construct(private LoggerInterface $logger) {}
+    public function __construct(private LoggerInterface $logger, private IConfig $config) {}
 
     // If a config file is found, apply the rules to the file name and return the new file name
     public function processRenameFile(File $file): array {
@@ -152,10 +153,13 @@ class RenameFileProcessor {
 
     // Replace {fileModifiedAt|format} or {fileModifiedAt} with the file's last modified time
     // The format should be a valid date format string for PHP's date() function
-    private static function applyFileMTimePlaceholder(array $replacement, File $file): array {
+    private function applyFileMTimePlaceholder(array $replacement, File $file): array {
         return preg_replace_callback('/\{fileModifiedAt(?:\|([^}]+))?\}/', function ($matches) use ($file) {
             $format = $matches[1] ?? 'Y-m-d'; // Use 'Y-m-d' as the default format
-            return date($format, $file->getMTime());
+            $date = new \DateTime('@' . $file->getMTime()); // Create from Unix timestamp
+            $date->setTimezone($this->getTimezone($file));
+            
+            return $date->format($format);
         }, $replacement);
     }
 
@@ -191,7 +195,10 @@ class RenameFileProcessor {
     private function applyPhotoDateTimePlaceholder(array $replacement, File $file): array {
         return preg_replace_callback('/\{photoDateTime(?:\|([^}]+))?\}/', function ($matches) use ($file) {
             $format = $matches[1] ?? 'Y-m-d'; // Use 'Y-m-d' as the default format
-            $fallback = date($format, $file->getMTime());
+
+            $fallbackDate = new \DateTime('@' . $file->getMTime());
+            $fallbackDate->setTimezone($this->getTimezone($file));
+            
             $metadata = $file->getMetadata();
             
             // Use EXIF data from photos app
@@ -199,14 +206,14 @@ class RenameFileProcessor {
             if ($exif === null) {
                 $this->photosExifMissing = true;
                 $this->logger->debug('No photos-exif found in metadata. Using fallback: ' . $fallback, ['path' => $file->getPath()]);
-                return $fallback;
+                return $fallbackDate->format($format);
             }
 
             try {
                 $dateTime = self::parseExifDate($exif);
             } catch (\Exception | \ValueError $e) {
                 $this->logger->debug('Error parsing EXIF date: ' . $e->getMessage() . '. Using fallback: ' . $fallback, ['path' => $file->getPath()]);
-                return $fallback;
+                return $fallbackDate->format($format);
             }
 
             return $dateTime->format($format);
@@ -289,4 +296,16 @@ class RenameFileProcessor {
         }
         return [null, null];
     }
+
+    private function getTimezone(File $file): \DateTimeZone {
+        $dateDefaultTimeZone = date_default_timezone_get();
+        $defaultTimeZone = $this->config->getSystemValueString('default_timezone', $dateDefaultTimeZone);
+        $userTimeZone = $this->config->getUserValue(
+            $file->getOwner()->getUID(),
+            'core',
+            'timezone',
+            $defaultTimeZone
+        );
+        return new \DateTimeZone($userTimeZone);
+	}
 }
