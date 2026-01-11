@@ -9,6 +9,14 @@ namespace Psr\Log {
     }
 }
 
+namespace OCP {
+    // Stand-in IConfig interface
+    interface IConfig {
+        public function getSystemValueString(string $key, string $default = ''): string;
+        public function getUserValue(string $uid, string $app, string $key, string $default = ''): string;
+    }
+}
+
 namespace OCP\Files {
     // Stand-in File class
     class File {

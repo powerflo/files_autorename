@@ -4,24 +4,27 @@ use OCA\Files_AutoRename\Service\RenameFileProcessor;
 use OCA\Files_AutoRename\Service\RuleAnnotation;
 use OCP\Files\File;
 use OCP\Files\Folder;
+use OCP\IConfig;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 class RenameFileProcessorTest extends TestCase
 {
     private LoggerInterface $logger;
+    private IConfig $config;
 
     protected function setUp(): void
     {
         // Simple logger mock
         $this->logger = $this->createMock(LoggerInterface::class);
+        $this->config = $this->createMock(IConfig::class);
     }
 
     public function testReturnsNewNameWhenRuleMatches(): void
     {
         $file = new File('/path/to/example.JPG');
         
-        $processorClass = new class($this->logger) extends RenameFileProcessor {
+        $processorClass = new class($this->logger, $this->config) extends RenameFileProcessor {
             public function getRenameConfigContents(File $file) : array {
                 $folder = new Folder('/path/to');
                 $rules = <<<TXT
