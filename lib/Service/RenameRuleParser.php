@@ -76,7 +76,7 @@ class RenameRuleParser
             // Implementation: Split at the first colon followed only by placeholders, escaped 
             // characters, or non-colon text until the end of the string.
             $parts = preg_split(
-                '/(?<!\\\\):(?=(?:\{pdfPatternMatch\|.*?\}|\\\\.|[^:\\\\])*$)/', 
+                '/(?<!\\\\):(?=(?:\{pdfPatternMatch\|(.)(.+?)\1|\\\\.|[^:\\\\])*$)/', 
                 $line,
                 2
             );
