@@ -154,6 +154,8 @@ Define global renaming rules for a **group folder** (also known as **Team folder
     - [What happens if a file with the new file name (as a result of a renaming rule) already exists?](#what-happens-if-a-file-with-the-new-file-name-as-a-result-of-a-renaming-rule-already-exists)
     - [What happens if the target folder for the file (when moving it) does not exist?](#what-happens-if-the-target-folder-for-the-file-when-moving-it-does-not-exist)
     - [Can folders be renamed or moved?](#can-folders-be-renamed-or-moved)
+    - [How can I manually run the background job?](#how-can-i-manually-run-the-background-job)
+
 - [Writing rules](#writing-rules)
     - [Need help writing rules?](#need-help-writing-rules)
     - [How can I test the rules?](#how-can-i-test-the-rules)
@@ -168,6 +170,7 @@ Define global renaming rules for a **group folder** (also known as **Team folder
 - [Configuration file](#configuration-file)
     - [How do I create a .rename.conf file?](#how-do-i-create-a-renameconf-file)
     - [Why can’t I see the .rename.conf file in the folder?](#why-cant-i-see-the-renameconf-file-in-the-folder)
+
 - [Troubleshooting](#troubleshooting)
     - [What should I do if a file is not renamed but I expect it to be renamed?](#what-should-i-do-if-a-file-is-not-renamed-but-i-expect-it-to-be-renamed)
     - [Will existing files be renamed after I create or update a `.rename.conf` file?](#will-existing-files-be-renamed-after-i-create-or-update-a-renameconf-file)
@@ -202,6 +205,14 @@ The target folder will be **created automatically** to ensure the file can be mo
 ### Can folders be renamed or moved?
 
 No, AutoRename is currently restricted to **files** and does not rename or move folders.
+
+### How can I manually run the background job?
+You can manually trigger the background jobs (which include the AutoRename tasks) by executing the Nextcloud cron script. This is useful when you need to "expedite" the renaming process without waiting for the scheduled 5-minute interval.
+
+Example for the Nextcloud AIO setup:
+```
+sudo docker exec --user www-data -it nextcloud-aio-nextcloud php cron.php
+```
 
 ## Writing rules
 
