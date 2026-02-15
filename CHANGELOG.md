@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [2.4.0] - 2026-02-15
 - Added the `@ActionCopy` annotation. Rules can now copy files to a new destination while keeping the original file intact.
 
 ## [2.3.2] - 2026-01-11
@@ -82,6 +82,7 @@ You can now define global renaming rules for a user by placing a `.rename.user.c
 ## [1.0.0] - 2025-02-07
 - Initial release.
 
+[2.4.0]: https://github.com/powerflo/files_autorename/releases/tag/v2.4.0
 [2.3.2]: https://github.com/powerflo/files_autorename/releases/tag/v2.3.2
 [2.3.1]: https://github.com/powerflo/files_autorename/releases/tag/v2.3.1
 [2.3.0]: https://github.com/powerflo/files_autorename/releases/tag/v2.3.0
