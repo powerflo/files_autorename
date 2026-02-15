@@ -54,6 +54,18 @@ Rename rules are defined using regular expression (regex) patterns to match file
   - Each `pattern` is replaced by its corresponding `replacement`.
   - Each replacement operates on the result of the previous one (not the original file name).
 
+#### Annotations
+
+You can modify the default behavior of a rule by appending **Annotations** to the end of a grouped rule. Annotations allow you to change the file action (e.g., copying instead of moving) or define [conflict resolution strategies](#what-happens-if-a-file-with-the-new-file-name-as-a-result-of-a-renaming-rule-already-exists).
+
+Annotations must be placed immediately after the closing `}` of a grouped rule. You can use a single annotation or combine multiple ones separated by a space:
+
+```
+{
+pattern:replacement
+} @ActionCopy @ConflictKeepBoth
+```
+
 ### Rule Behavior
 
 This is how rules are processed and applied:
@@ -186,16 +198,10 @@ Contributions are welcome! Feel free to submit issues and pull requests.
 
 By default, the file will **not be renamed** to avoid overwriting existing files. Think about it as renaming in your file explorer: you can’t choose a file name that is already taken.
 
-You can change this behavior by annotating a grouped rule with a conflict strategy:
+You can change this behavior by [annotating](#annotations) a grouped rule with a conflict strategy:
 - `@ConflictKeepBoth` → Keep both files (the new file gets a unique name)
 - `@ConflictKeepBothIfDifferent` → Keep both only if the contents differ (determined by checksum)
 - `@ConflictCancel` → Cancel operation (default if none specified)
-
-Annotations can only be applied to grouped rules. Place them after the closing `}`:
-```
-{
-pattern:replacement
-} @Annotation
 ```
 
 ### What happens if the target folder for the file (when moving it) does not exist?

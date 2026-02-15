@@ -124,9 +124,16 @@ class RenameJob extends QueuedJob
             }
         }
 
+        $fileAction = $this->resolveFileAction($annotations);
+
         try {
-            $file->move($newFilePath);
-            $this->logger->info('File moved successfully to ' . $newFilePath, ['path' => $filePath]);
+            if ($fileAction === RuleAnnotation::ActionCopy) {
+                $file->copy($newFilePath);
+                $this->logger->info('File copied successfully to ' . $newFilePath, ['path' => $filePath]);
+            } else {
+                $file->move($newFilePath);
+                $this->logger->info('File moved successfully to ' . $newFilePath, ['path' => $filePath]);
+            }
         } catch (\Exception $ex) {
             if ($arguments['retryCount'] > 0) {
                 $this->logger->info('Rename to ' . $newFilePath . ' failed. Exception: ' . $ex->getMessage() . '. Retrying...', ['path' => $file->getPath(), 'retryCount' => $arguments['retryCount']]);
@@ -172,5 +179,22 @@ class RenameJob extends QueuedJob
 
         // Fallback if no annotation present
         return RuleAnnotation::ConflictCancel;
+    }
+
+    private function resolveFileAction(array $annotations): RuleAnnotation
+    {
+        $fileActionAnnotations = [
+            RuleAnnotation::ActionMove,
+            RuleAnnotation::ActionCopy
+        ];
+
+        foreach ($annotations as $annotation) {
+            if (in_array($annotation, $fileActionAnnotations, true)) {
+                return $annotation; // first annotation wins
+            }
+        }
+
+        // Default behaviour
+        return RuleAnnotation::ActionMove;
     }
 }

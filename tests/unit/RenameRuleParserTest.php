@@ -104,7 +104,7 @@ class RenameRuleParserTest extends \PHPUnit\Framework\TestCase
         $this->assertSame($expected, $this->parser->parse($contents));
     }
 
-    public function testGroupedRulesWithAnnotations(): void
+    public function testGroupedRulesWithAnnotation(): void
     {
         $contents = <<<TXT
         {
@@ -117,6 +117,25 @@ class RenameRuleParserTest extends \PHPUnit\Framework\TestCase
                 'patterns' => ['/foo/'],
                 'replacements' => ['bar'],
                 'annotations' => [RuleAnnotation::ConflictCancel],
+            ]
+        ];
+
+        $this->assertSame($expected, $this->parser->parse($contents));
+    }
+
+    public function testGroupedRulesWithMultipleAnnotations(): void
+    {
+        $contents = <<<TXT
+        {
+        foo:bar
+        } @ConflictCancel @ActionCopy
+        TXT;
+
+        $expected = [
+            [
+                'patterns' => ['/foo/'],
+                'replacements' => ['bar'],
+                'annotations' => [RuleAnnotation::ConflictCancel, RuleAnnotation::ActionCopy],
             ]
         ];
 

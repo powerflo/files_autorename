@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+- Added the `@ActionCopy` annotation. Rules can now copy files to a new destination while keeping the original file intact.
+
 ## [2.3.2] - 2026-01-11
 - Fixed: The placeholders `{fileModifiedAt}` and `{photoDateTime}` (when no EXIF date is available) now use the user's timezone instad of UTC.
 
