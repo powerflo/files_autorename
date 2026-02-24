@@ -202,7 +202,6 @@ You can change this behavior by [annotating](#annotations) a grouped rule with a
 - `@ConflictKeepBoth` → Keep both files (the new file gets a unique name)
 - `@ConflictKeepBothIfDifferent` → Keep both only if the contents differ (determined by checksum)
 - `@ConflictCancel` → Cancel operation (default if none specified)
-```
 
 ### What happens if the target folder for the file (when moving it) does not exist?
 
