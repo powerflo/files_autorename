@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+- EXIF date parsing now incorporates the `SubSecTimeOriginal` tag, giving microsecond-accurate timestamps instead of second-level precision only.
+
 ## [2.4.0] - 2026-02-15
 - Added the `@ActionCopy` annotation. Rules can now copy files to a new destination while keeping the original file intact.
 

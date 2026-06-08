@@ -228,7 +228,15 @@ class RenameFileProcessor {
             throw new \Exception('No date found in exif');
         }
 
-        $parsedDate = \DateTime::createFromFormat('Y:m:d H:i:s', $exifDate);
+        $subsec = $exif['SubSecTimeOriginal'] ?? null;
+
+        if (\is_string($subsec) && \preg_match('/^\d+$/', $subsec)) {
+            // Normalize to exactly 6 digits (microseconds)
+            $us = \str_pad(\substr($subsec, 0, 6), 6, '0');
+            $parsedDate = \DateTime::createFromFormat('Y:m:d H:i:s.u', "{$exifDate}.{$us}");
+        } else {
+            $parsedDate = \DateTime::createFromFormat('Y:m:d H:i:s', $exifDate);
+        }
         
         if (!$parsedDate) {
             throw new \Exception("Invalid date: {$exifDate}, expected format YYYY:MM:DD HH:MM:SS");
