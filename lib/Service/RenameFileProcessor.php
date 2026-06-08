@@ -198,6 +198,7 @@ class RenameFileProcessor {
 
             $fallbackDate = new \DateTime('@' . $file->getMTime());
             $fallbackDate->setTimezone($this->getTimezone($file));
+            $fallback = $fallbackDate->format($format);
             
             $metadata = $file->getMetadata();
             
@@ -206,14 +207,14 @@ class RenameFileProcessor {
             if ($exif === null) {
                 $this->photosExifMissing = true;
                 $this->logger->debug('No photos-exif found in metadata. Using fallback: ' . $fallback, ['path' => $file->getPath()]);
-                return $fallbackDate->format($format);
+                return $fallback;
             }
 
             try {
                 $dateTime = self::parseExifDate($exif);
             } catch (\Exception | \ValueError $e) {
                 $this->logger->debug('Error parsing EXIF date: ' . $e->getMessage() . '. Using fallback: ' . $fallback, ['path' => $file->getPath()]);
-                return $fallbackDate->format($format);
+                return $fallback;
             }
 
             return $dateTime->format($format);
