@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## [2.4.1] - 2026-06-08
 - EXIF date parsing now incorporates the `SubSecTimeOriginal` tag, giving microsecond-accurate timestamps instead of second-level precision only.
 
 ## [2.4.0] - 2026-02-15
