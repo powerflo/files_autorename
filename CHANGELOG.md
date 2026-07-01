@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.4.2] - 2026-07-01
+- Support for Nextcloud 35
+
 ## [2.4.1] - 2026-06-08
 - EXIF date parsing now incorporates the `SubSecTimeOriginal` tag, giving microsecond-accurate timestamps instead of second-level precision only.
 

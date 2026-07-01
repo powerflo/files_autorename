@@ -41,6 +41,6 @@ Check out the [full documentation on GitHub](https://github.com/powerflo/files_a
 	<bugs>https://github.com/powerflo/files_autorename/issues</bugs>
 	<screenshot>https://raw.githubusercontent.com/powerflo/files_autorename/refs/heads/main/screenshots/screenshot-dot-rename-conf.png</screenshot>
 	<dependencies>
-		<nextcloud min-version="30" max-version="33"/>
+		<nextcloud min-version="30" max-version="35"/>
 	</dependencies>
 </info>
